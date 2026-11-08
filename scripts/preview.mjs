@@ -18,17 +18,29 @@ const app = sources['app.js'].replace(/^import .*?;\n/gm, '');
 const artFiles = ['assets/shell-gold.png','assets/reel-redrawn.png','assets/players-label.png','assets/spin-label.png','assets/parchment-redrawn.png'];
 const art = Object.fromEntries(await Promise.all(artFiles.map(async file => [file, await readFile(resolve(root, file))])));
 let css = sources['styles.css'];
-const artVariables=[];
+const embeddedArt=[];
 for (const [index,file] of artFiles.entries()) {
   const url=`url('./${file}')`;
-  if(!css.includes(url))continue;
-  // Reuse one embedded copy, rather than duplicating large textures for every
-  // button state. This keeps the full-resolution preview under Canvas's cap.
   const variable=`--preview-art-${index}`;
-  css=css.replaceAll(url,`var(${variable})`);
-  artVariables.push(`${variable}:url('data:image/png;base64,${art[file].toString('base64')}')`);
+  const background=css.includes(url);
+  if(background)css=css.replaceAll(url,`var(${variable})`);
+  embeddedArt.push({file,variable,background,bytes:art[file].toString('base64')});
 }
-css=`:root{${artVariables.join(';')}}\n${css}`;
+// Large data URLs exceed Chromium's custom-property token limit and silently
+// invalidate the whole background. Keep CSS values short: decode each original
+// PNG once into a document-owned Blob URL, without fetching or changing CSP.
+const bootArt=`(() => {
+  for (const asset of ${JSON.stringify(embeddedArt)}) {
+    const binary=atob(asset.bytes), bytes=new Uint8Array(binary.length);
+    for (let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+    const url=URL.createObjectURL(new Blob([bytes],{type:'image/png'}));
+    if(asset.background)document.documentElement.style.setProperty(asset.variable,'url("'+url+'")');
+    for(const image of document.querySelectorAll('img[data-preview-image]')){
+      if(image.dataset.previewImage===asset.file)image.src=url;
+    }
+  }
+  // Keep URLs for this document's lifetime, including back/forward-cache return.
+})();`;
 const code = `${logic}\n${motion}\n${settings}\n${audio}\n${app}`;
 let preview = sources['index.html']
   .replace('<html lang="en">', '<html lang="en" data-preview="true">')
@@ -39,8 +51,8 @@ let preview = sources['index.html']
   .replace('  <link rel="stylesheet" href="./styles.css">', `<style>${css}</style>`)
   .replace('  <script type="module" src="./app.js"></script>', '')
   .replace('href="./" aria-label=', 'href="#" aria-label=')
-  .replace('</body>', `<script>${code}\n$('offline-status').textContent = 'INTERACTIVE PREVIEW';\n</script></body>`);
-for (const file of artFiles) preview = preview.replaceAll(`src="./${file}"`, `src="data:image/png;base64,${art[file].toString('base64')}"`);
+  .replace('</body>', `<script>${bootArt}\n${code}\n$('offline-status').textContent = 'INTERACTIVE PREVIEW';\n</script></body>`);
+for (const file of artFiles) preview = preview.replaceAll(`src="./${file}"`, `data-preview-image="${file}"`);
 await mkdir(resolve(root, 'test-results'), { recursive: true });
 await writeFile(resolve(root, 'test-results/preview.html'), preview);
 const hashes = Object.fromEntries(files.map(file => [file, createHash('sha256').update(sources[file]).digest('hex')]));
