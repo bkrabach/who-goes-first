@@ -74,6 +74,18 @@ devices or clearing site data. Import replaces the current list only after expli
 confirmation. No account is needed and there is no cross-device synchronization.
 Sound effects can be disabled, volume adjusted, and reduced motion selected.
 The operating system's reduced-motion preference is always respected.
+The optional browser installation tip is dismissed using a separate local
+preference. Installed app windows and embedded previews do not show it. Settings
+always retains consumer-oriented installation steps. The desktop Fit portrait
+window button is a user-triggered best-effort resize, not an aspect-ratio lock;
+browser/OS window rules can refuse it. No automatic resizing is performed.
+New square, opaque icons use fresh filenames and a separate maskable safe-zone
+variant. Existing Dock/home-screen icons may update on the browser's schedule.
+The macOS "Data Access Blocked" notification is an OS/browser integration issue
+whose denied resource has not been identified. The website requests no broad
+filesystem access; imports use an explicitly selected file and exports a
+user-triggered download. Do not grant Full Disk Access or clear site data as a
+workaround. Source reference: https://web.dev/learn/pwa/windows/
 Approved default: 3.2-second coast/assisted settle with progressive directional
 blur, natural-speed wheel collage during spinning, and one Yay at the actual stop.
 

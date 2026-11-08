@@ -2,6 +2,7 @@ import { STORAGE_KEY, MAX_PLAYERS, cleanName, defaultPlayers, decodePlayers, enc
 import { createWinnerSound } from './audio.js';
 import { reelKeyframes, motionBlur } from './motion.js';
 import { SETTINGS_KEY, defaultSettings, decodeSettings, encodeSettings } from './settings.js';
+import { initializeInstallGuide } from './install.js';
 
 const $ = id => document.getElementById(id);
 let players;
@@ -18,7 +19,6 @@ let applyingUpdate = false;
 let winner = null;
 let deleted = null;
 let toastTimer;
-let installPrompt;
 let settings = defaultSettings();
 let preferencesWarning = '';
 try {
@@ -312,7 +312,6 @@ $('spin-button').addEventListener('click', async () => {
   }
 });
 
-$('install-help').addEventListener('click', () => $('install-dialog').showModal());
 $('sound-credits').addEventListener('click', () => $('credits-dialog').showModal());
 $('close-credits').addEventListener('click', () => $('credits-dialog').close());
 winnerSound.ready.then(loaded => {
@@ -404,18 +403,7 @@ $('import-dialog').addEventListener('close',()=>{
   if(!$('import-dialog').open)pendingImport=null;
 });
 renderSettings();
-document.querySelectorAll('.close-install').forEach(button => button.addEventListener('click', () => $('install-dialog').close()));
-window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; $('install-button').hidden = false; });
-$('install-button').addEventListener('click', async () => {
-  if (!installPrompt) return;
-  await installPrompt.prompt();
-  await installPrompt.userChoice;
-  installPrompt = null;
-  $('install-button').hidden = true;
-});
-window.addEventListener('appinstalled', () => { $('install-help').hidden = true; $('install-dialog').close(); });
-const standalone=matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
-if(standalone){$('install-help').textContent='Installation help';$('install-context').textContent='You’re running the installed app. Your players and settings stay saved in this browser’s app storage.';}
+initializeInstallGuide();
 if(document.documentElement.dataset.preview==='true'){
   $('install-context').textContent='This is the embedded preview. Install the app from its published HTTPS website; installation and offline caching do not run inside Canvas.';
   $('offline-detail').textContent='Preview mode: installation and offline caching are available on the published website.';

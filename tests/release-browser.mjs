@@ -18,6 +18,7 @@ try{
   const page=await context.newPage();
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(base);
+  await page.locator('#install-tip-dismiss').click();
   await page.locator('#settings-open').click();
   await page.getByRole('switch',{name:'Sound effects',exact:false}).uncheck();
   await page.locator('#sound-volume').fill('40');
@@ -127,7 +128,7 @@ try{
   pass('Sound credits is a subtle Settings footer link, not a main-screen control, with nested focus restored');
   await page.locator('#settings-open').click();
   await page.locator('#install-help').click();
-  assert.match(await page.locator('#install-dialog').textContent(),/Safari/);
+  assert.match(await page.locator('#install-dialog').textContent(),/home screen|browser|Dock/);
   await page.keyboard.press('Escape');await page.keyboard.press('Escape');
   assert.equal(await page.evaluate(()=>document.activeElement.id),'settings-open');
   pass('nested dialogs preserve native keyboard dismissal and return focus to Settings');

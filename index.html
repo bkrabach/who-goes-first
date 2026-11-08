@@ -10,8 +10,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Who Goes First?">
   <title>Who Goes First?</title>
-  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="icon" href="./icons/who-goes-first-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="./icons/who-goes-first-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="./icons/who-goes-first-apple-180.png" sizes="180x180">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./app.js"></script>
@@ -41,6 +42,14 @@
     </main>
     <p id="storage-warning" class="storage-warning" role="alert" hidden></p>
     <p id="sound-error" class="storage-warning" role="status" hidden></p>
+    <aside id="install-tip" class="install-tip" aria-labelledby="install-tip-title" hidden>
+      <img class="install-tip-icon" src="./icons/who-goes-first-192.png" width="56" height="56" alt="">
+      <div class="install-tip-copy"><h2 id="install-tip-title">Keep it handy</h2>
+        <p>Add Who Goes First? to your home screen or Dock for one-tap play—even offline after your first visit. No account needed.</p>
+        <div class="button-row"><button id="install-tip-help" class="button">Show me how</button><button id="install-tip-install" class="button button-dark" hidden>Add app</button></div>
+      </div>
+      <button id="install-tip-dismiss" class="icon-button" aria-label="Dismiss installation tip" title="Dismiss">×</button>
+    </aside>
   </div>
   <dialog id="players-dialog" aria-labelledby="players-title">
     <div class="dialog-heading"><div><p class="eyebrow">EVERYONE AT THE TABLE</p><h2 id="players-title">Who’s playing?</h2></div><button class="icon-button close-dialog" aria-label="Close players">×</button></div>
@@ -71,6 +80,8 @@
       <p id="offline-status" class="muted">READY TO PLAY</p>
       <p id="update-status" class="muted" role="status"></p>
       <button id="apply-update" class="button button-dark" hidden>Apply update</button>
+      <button id="fit-portrait" class="button" hidden>Fit portrait window</button>
+      <p id="window-size-status" class="muted" role="status"></p>
     </section>
     <section class="settings-section" aria-labelledby="backup-heading">
       <h3 id="backup-heading">Keep your crew</h3>
@@ -88,10 +99,10 @@
   </dialog>
   <dialog id="install-dialog" aria-labelledby="install-title">
     <div class="dialog-heading"><div><p class="eyebrow">ALWAYS AT HAND</p><h2 id="install-title">Make yourself at home.</h2></div><button class="icon-button close-install" aria-label="Close installation instructions">×</button></div>
-    <p>Keep Who Goes First? on your home screen. After the first visit, it works offline too.</p>
-    <div class="install-instructions"><h3>iPhone &amp; iPad</h3><p>Open this site in Safari, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.</p><h3>Android &amp; desktop</h3><p>In Chrome or Edge, open the browser menu and look for <strong>Install app</strong> or <strong>Add to home screen</strong>.</p></div>
-    <p id="install-context" class="muted">Installation requires an HTTPS website (or localhost while developing). Browser support varies.</p>
-    <button id="install-button" class="button button-dark" hidden>Install app</button>
+    <p>Give Who Goes First? its own icon. Open it with one tap, without finding a browser tab. After your first visit, you can play offline too.</p>
+    <div class="install-instructions"><h3 id="install-guide-title">Keep it handy</h3><ol id="install-steps"></ol></div>
+    <p id="install-context" class="muted">No app-store download or account needed. You can also keep playing in your browser.</p>
+    <button id="install-button" class="button button-dark" hidden>Add app</button>
   </dialog>
   <div class="toast" id="toast" role="status" hidden><span id="toast-text"></span><button class="text-button" id="undo-delete">Undo</button></div>
   <dialog id="credits-dialog" aria-labelledby="credits-title">

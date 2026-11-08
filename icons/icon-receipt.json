@@ -1,0 +1,45 @@
+{
+  "request": "wgf-original-icon-square-02",
+  "model": "gpt-image-2.5-flare",
+  "originalReference": "500d22ad77c120eac8023002f155ca414dd9884ff61a9bf980f255c5aa326da8",
+  "source": "a2b8cf94a33fffdfbea677da2914a7cdcc9effaf496f9ac89d8304baa4329102",
+  "method": "Original stacked lettering restored on opaque edge-to-edge square gold, no baked corner radius. Maskable title placed within 40% circular safe zone.",
+  "outputs": {
+    "who-goes-first-32.png": {
+      "size": 32,
+      "sha256": "be53d5fd80c1cb73b84a3f2fd44c5d601f431c837761e8b6b3380bf5540ae028",
+      "opaque": true,
+      "maskable": false
+    },
+    "who-goes-first-192.png": {
+      "size": 192,
+      "sha256": "e6116803957507698654055380eaefb8112e3c93f2216a72b58487bb6ddadd8e",
+      "opaque": true,
+      "maskable": false
+    },
+    "who-goes-first-512.png": {
+      "size": 512,
+      "sha256": "2d2c298c202a7924ada9e5a31edfddd68bdc49070d9328d8169e808275757662",
+      "opaque": true,
+      "maskable": false
+    },
+    "who-goes-first-1024.png": {
+      "size": 1024,
+      "sha256": "2b89855cd408e68f4677f7a897c4a91ed9b4779899e4a773be0d423d6ec741b8",
+      "opaque": true,
+      "maskable": false
+    },
+    "who-goes-first-maskable-512.png": {
+      "size": 512,
+      "sha256": "cd8839e173d94d7252ac07db40f0f4b92c62011bc4cca7b5c4391282fc395c6a",
+      "opaque": true,
+      "maskable": true
+    },
+    "who-goes-first-apple-180.png": {
+      "size": 180,
+      "sha256": "80125af2c34a3a28c37bbee03fd197ae7f64a5a54ae307fbf10a3a168fde0e73",
+      "opaque": true,
+      "maskable": false
+    }
+  }
+}
