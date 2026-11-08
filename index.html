@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#9d6b0d">
+  <meta name="description" content="Gather your people. Give chance a spin. A free, offline-friendly way to decide who goes first.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Who Goes First?">
+  <title>Who Goes First?</title>
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+    <defs><filter id="reel-motion-blur" x="-20%" y="-25%" width="140%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur id="reel-blur" stdDeviation="0 0"/></filter></defs>
+  </svg>
+  <div class="site">
+    <main>
+      <h1 id="page-title" class="sr-only">Who Goes First?</h1>
+      <section class="original-screen" aria-label="Random player picker">
+          <button class="art-control settings-control" id="settings-open" aria-label="Settings" title="Settings">
+            <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="m20 4-1 6-4 2-5-3-6 10 5 4v4l-5 4 6 10 5-3 4 2 1 6h11l1-6 4-2 5 3 6-10-5-4v-4l5-4-6-10-5 3-4-2-1-6Z" transform="translate(-2 -1) scale(.98)"/><circle cx="23" cy="23" r="8"/></svg>
+          </button>
+          <button class="art-control players-control" id="manage-top" aria-label="Players"><img src="./assets/players-label.png" alt="" aria-hidden="true"><span class="sr-only">Players · <span id="top-count">6</span> playing</span></button>
+          <div class="machine" id="machine">
+            <div class="reel-shell">
+              <div class="reel-window" id="reel-window" aria-hidden="true"><div class="reel-track" id="reel-track"></div></div>
+            </div>
+          </div>
+          <p class="result sr-only" id="result" role="status" aria-live="polite" aria-atomic="true">Your next first player is one spin away.</p>
+          <button class="art-control spin-button" id="spin-button"><img src="./assets/spin-label.png" alt="" aria-hidden="true"><span class="sr-only" id="spin-label">Who goes first?</span></button>
+          <p class="sr-only" id="odds">6 players. Equal chances. No hard feelings.</p>
+          <p class="sr-only" id="ready-text">READY TO ROLL</p>
+      </section>
+      <p id="visible-result" class="visible-result" aria-hidden="true">6 players in. Everyone has an equal chance.</p>
+    </main>
+    <p id="storage-warning" class="storage-warning" role="alert" hidden></p>
+    <p id="sound-error" class="storage-warning" role="status" hidden></p>
+    <footer><span id="offline-status" role="status">READY TO PLAY</span><span class="app-version">Who Goes First? · 1.0</span></footer>
+  </div>
+  <dialog id="players-dialog" aria-labelledby="players-title">
+    <div class="dialog-heading"><div><p class="eyebrow">EVERYONE AT THE TABLE</p><h2 id="players-title">Who’s playing?</h2></div><button class="icon-button close-dialog" aria-label="Close players">×</button></div>
+    <p class="dialog-description">Switch players in or out. Tap a name to rename it.</p>
+    <p class="saved-note" id="saved-note">Your crew stays saved on this device.</p>
+    <ul class="sr-only" id="table-list" aria-label="Players currently in"></ul>
+    <form id="add-form" class="add-form"><label class="sr-only" for="new-name">New player name</label><input id="new-name" name="name" placeholder="Someone new at the table?" maxlength="40" required autocomplete="off"><button class="button button-dark" type="submit">Add player</button></form>
+    <p id="form-error" class="form-error" role="status"></p>
+    <div class="roster-toolbar"><span id="roster-count"></span><div><button id="select-all" class="text-button">All in</button><span aria-hidden="true"> / </span><button id="select-none" class="text-button">All out</button></div></div>
+    <ul id="players-list" class="players-list"></ul>
+    <div class="dialog-footer"><span>Changes save automatically.</span><button class="button button-dark close-dialog">Done</button></div>
+  </dialog>
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <div class="dialog-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h2 id="settings-title">Settings</h2></div><button class="icon-button" id="settings-close" aria-label="Close settings">×</button></div>
+    <section class="settings-section" aria-labelledby="sound-heading">
+      <h3 id="sound-heading">Sound &amp; motion</h3>
+      <label class="setting-row" for="sound-enabled"><span><strong>Sound effects</strong><small>Wheel spin and the original “Yay.”</small></span><input type="checkbox" id="sound-enabled" role="switch" checked></label>
+      <label class="setting-row volume-row" for="sound-volume"><span><strong>Volume</strong><small id="volume-value">100%</small></span><input id="sound-volume" type="range" min="0" max="100" step="5" value="100"></label>
+      <label class="setting-row" for="reduce-motion"><span><strong>Reduce motion</strong><small>Skip the long spin and blur. Your device’s reduced-motion setting is always respected.</small></span><input type="checkbox" id="reduce-motion" role="switch"></label>
+      <p id="settings-save-status" class="muted" role="status">Saved on this device.</p>
+    </section>
+    <section class="settings-section" aria-labelledby="app-heading">
+      <h3 id="app-heading">Your app, anywhere</h3>
+      <p class="muted">No account, ads, or analytics. Your players and preferences stay in this browser. Clearing its site data removes them.</p>
+      <p id="preview-storage-note" class="muted" hidden>Interactive preview: saving is unavailable here. Open the published app to keep your players and preferences on this device.</p>
+      <button id="install-help" class="button button-dark">Add to home screen</button>
+      <p id="offline-detail" class="muted" role="status">Preparing offline play…</p>
+      <p id="update-status" class="muted" role="status"></p>
+    </section>
+    <section class="settings-section" aria-labelledby="backup-heading">
+      <h3 id="backup-heading">Keep your crew</h3>
+      <p class="muted">Save a backup before switching devices. Import replaces the list on this device, after confirmation.</p>
+      <div class="button-row"><button id="export-players" class="button button-dark">Export players</button><button id="import-players" class="button">Import players</button></div>
+      <input id="import-file" type="file" accept=".json,application/json" hidden>
+      <p id="backup-status" class="muted" role="status"></p>
+    </section>
+    <div class="dialog-footer"><div class="settings-footnote"><span>Who Goes First? · Version 1.0</span><button id="sound-credits" class="text-button subtle-link">Sound credits</button></div><button class="button button-dark" id="settings-done">Done</button></div>
+  </dialog>
+  <dialog id="import-dialog" aria-labelledby="import-title">
+    <div class="dialog-heading"><h2 id="import-title">Bring your crew?</h2><button class="icon-button" id="import-cancel" aria-label="Cancel import">×</button></div>
+    <p id="import-summary"></p><p class="muted">This replaces the current player list. Your settings stay unchanged.</p>
+    <div class="button-row"><button class="button" id="import-keep">Keep current players</button><button class="button button-dark" id="import-confirm">Replace players</button></div>
+  </dialog>
+  <dialog id="install-dialog" aria-labelledby="install-title">
+    <div class="dialog-heading"><div><p class="eyebrow">ALWAYS AT HAND</p><h2 id="install-title">Make yourself at home.</h2></div><button class="icon-button close-install" aria-label="Close installation instructions">×</button></div>
+    <p>Keep Who Goes First? on your home screen. After the first visit, it works offline too.</p>
+    <div class="install-instructions"><h3>iPhone &amp; iPad</h3><p>Open this site in Safari, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.</p><h3>Android &amp; desktop</h3><p>In Chrome or Edge, open the browser menu and look for <strong>Install app</strong> or <strong>Add to home screen</strong>.</p></div>
+    <p id="install-context" class="muted">Installation requires an HTTPS website (or localhost while developing). Browser support varies.</p>
+    <button id="install-button" class="button button-dark" hidden>Install app</button>
+  </dialog>
+  <div class="toast" id="toast" role="status" hidden><span id="toast-text"></span><button class="text-button" id="undo-delete">Undo</button></div>
+  <dialog id="credits-dialog" aria-labelledby="credits-title">
+    <div class="dialog-heading"><h2 id="credits-title">Sound credits</h2><button id="close-credits" class="icon-button" aria-label="Close sound credits">×</button></div>
+    <button id="test-sound" class="button button-dark" disabled>Test sound</button>
+    <p id="audio-status" class="muted" role="status" aria-live="polite">Loading winner sound…</p>
+    <p>YAY.mp3 by <strong>IFartInUrGeneralDirection</strong> — <a href="https://freesound.org/s/61691/" target="_blank" rel="noopener noreferrer">Freesound source</a> — License: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">Attribution 4.0 (CC BY 4.0)</a>.</p>
+    <p class="muted">This app uses only the third “Yay,” trimmed with a short lead-in and tail, tiny 5ms edge fades, and conversion to WAV. Pitch, speed, and volume are unchanged.</p>
+    <hr>
+    <button id="test-wheel" class="button button-dark" disabled>Test spinner sound</button>
+    <p id="wheel-status" class="muted" role="status" aria-live="polite">Loading spinner sound…</p>
+    <p>Bike Wheel Spinning.aif by <strong>plivesey</strong> — <a href="https://freesound.org/s/79073/" target="_blank" rel="noopener noreferrer">Freesound source</a> — License: <a href="https://creativecommons.org/licenses/sampling+/1.0/" target="_blank" rel="noopener noreferrer">Sampling+ 1.0</a>.</p>
+    <p class="muted">Six short sections from naturally fast through slow parts of the recording are joined with 10ms crossfades into a 3.2-second wind-down. Each section keeps its original speed and pitch; only the joins, edge fades, and playback volume are changed. The full original recording is not included. Sampling+ has different terms from CC BY, including restrictions on advertising uses; see the license above.</p>
+  </dialog>
+  <noscript><p class="no-script">This picker needs JavaScript to spin and save your players. Please enable it in your browser.</p></noscript>
+</body>
+</html>

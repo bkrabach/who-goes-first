@@ -1,0 +1,51 @@
+{
+  "sourceSha256": "b5dadfe7182f335a395edf98d320eff33108bc458a85f84c27a0905398647b62",
+  "sourceDimensions": [
+    640,
+    960
+  ],
+  "crop": {
+    "x": 0,
+    "y": 40,
+    "width": 640,
+    "height": 920
+  },
+  "nameRepairRectangles": [
+    {
+      "x": 178,
+      "y": 210,
+      "w": 279,
+      "h": 38
+    },
+    {
+      "x": 176,
+      "y": 289,
+      "w": 281,
+      "h": 57
+    },
+    {
+      "x": 195,
+      "y": 377,
+      "w": 256,
+      "h": 54
+    },
+    {
+      "x": 160,
+      "y": 465,
+      "w": 324,
+      "h": 61
+    },
+    {
+      "x": 168,
+      "y": 556,
+      "w": 310,
+      "h": 34
+    }
+  ],
+  "changedPixelsOutsideRepairs": 0,
+  "method": "Original screenshot crop; local parchment texture interpolation only inside baked-in name areas. No AI-generated artwork.",
+  "outputs": {
+    "main-screen.png": "54a1915cb9b9b263a10ed8ad5d8b5d47e735bba84424795402968bb327299e83",
+    "gold-texture.png": "3fe4d092e101b0394ea88b3840dc9871f444351ef735fc187fdcb1d800e41b96"
+  }
+}

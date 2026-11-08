@@ -1,0 +1,81 @@
+{
+  "sourceName": "79073__plivesey__bike-wheel-spinning.aiff",
+  "sourceSha256": "e2b2db239e23cb2c0f0ccd8db4421bfb8aa870309f7a402905997eeae041e739",
+  "sourceDuration": 56,
+  "segments": [
+    {
+      "sourceStartFrame": 134946,
+      "sourceEndFrame": 157878,
+      "startSeconds": 3.06,
+      "endSeconds": 3.58,
+      "outputStartFrame": 0,
+      "frameCount": 22932,
+      "playbackRate": 1
+    },
+    {
+      "sourceStartFrame": 746878,
+      "sourceEndFrame": 769810,
+      "startSeconds": 16.936009070294784,
+      "endSeconds": 17.456009070294783,
+      "outputStartFrame": 22491,
+      "frameCount": 22932,
+      "playbackRate": 1
+    },
+    {
+      "sourceStartFrame": 1324499,
+      "sourceEndFrame": 1347431,
+      "startSeconds": 30.033990929705215,
+      "endSeconds": 30.553990929705215,
+      "outputStartFrame": 44982,
+      "frameCount": 22932,
+      "playbackRate": 1
+    },
+    {
+      "sourceStartFrame": 1849245,
+      "sourceEndFrame": 1872177,
+      "startSeconds": 41.93299319727891,
+      "endSeconds": 42.452993197278914,
+      "outputStartFrame": 67473,
+      "frameCount": 22932,
+      "playbackRate": 1
+    },
+    {
+      "sourceStartFrame": 2248130,
+      "sourceEndFrame": 2271062,
+      "startSeconds": 50.97800453514739,
+      "endSeconds": 51.498004535147395,
+      "outputStartFrame": 89964,
+      "frameCount": 22932,
+      "playbackRate": 1
+    },
+    {
+      "sourceStartFrame": 2367950,
+      "sourceEndFrame": 2396615,
+      "startSeconds": 53.69501133786848,
+      "endSeconds": 54.34501133786848,
+      "outputStartFrame": 112455,
+      "frameCount": 28665,
+      "playbackRate": 1
+    }
+  ],
+  "duration": 3.2,
+  "sampleRate": 44100,
+  "channels": 2,
+  "bits": 16,
+  "playbackRate": 1,
+  "pitchShift": "none",
+  "resampling": false,
+  "crossfadeFrames": 441,
+  "crossfadeMilliseconds": 10,
+  "crossfadeCurve": "linear",
+  "sampledSeconds": 3.25,
+  "fadeInMilliseconds": 12,
+  "fadeOutMilliseconds": 120,
+  "peak": 0.988494873046875,
+  "rms": 0.04084679087166178,
+  "outputSha256": "87c73c1961bcebb4741dd6f41e4b203ce63d0a7be8ca5e83a8e0ff42dfc4764e",
+  "bytes": 564524,
+  "method": "Six short sections from naturally fast through slow parts of the supplied recording, all at original 1× speed and pitch. Five 10ms linear crossfades in inter-click gaps produce exactly 3.2s. 12ms fade-in and 120ms fade-out; stereo preserved; no resampling. App mixes at 55% gain beneath Yay.",
+  "attribution": "Bike Wheel Spinning.aif by plivesey -- https://freesound.org/s/79073/ -- License: Sampling+",
+  "licenseUrl": "https://creativecommons.org/licenses/sampling+/1.0/"
+}

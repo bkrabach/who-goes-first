@@ -1,0 +1,17 @@
+{
+  "originalPlate": "54a1915cb9b9b263a10ed8ad5d8b5d47e735bba84424795402968bb327299e83",
+  "goldMaterial": {
+    "sha256": "4aea1898393deab0f5603a64c574eb4242687d6b245a28981f432fc4040ae9f3",
+    "method": "Generated 1024px flat ochre material; mirrored seamless tiling. Image generation request wgf-gold-paper-tile-01, gpt-image-2.5-flare. No original ornamental artwork replaced."
+  },
+  "method": "Original machine crop with alpha-rounded corners; original label faces and outlines colour-keyed into separate alpha layers; vector/CSS bevels render independently of labels. Source plate retained unchanged.",
+  "outputs": {
+    "machine-frame.png": "b0e7f17d692507870ef61af06d9df8ed195dd2598c3fab979e4c4ebea6e6f922",
+    "players-button.png": "145ba8632884a20192009955239380515ec61778d9ea2a4ea705430fe3788d66",
+    "spin-button.png": "d0f1854e955a70419d9aeccfd7323f41f2e0ee82680f33573ab823bd96055859",
+    "parchment-texture.png": "a85bc0015e2e0c286c2ca82848b23184c161e98794617ec55195fe48a9ed265e",
+    "players-label-extracted.png": "fbe6a3a0f70188b0840040972cbf75c987673c635a17f5a83e1143c608094b8b",
+    "spin-label-extracted.png": "55684f153ec53ee8241e622fd715ffa2cb292493bd0dc5070339b63c907753ba",
+    "shell-gold.png": "00a68b9af9bf8e1cf5b7a5d6b12c2b4f123e09ac9d9562454e8d0aa82a32fe4c"
+  }
+}

@@ -1,0 +1,103 @@
+WHO GOES FIRST? — 1.0.0 RELEASE CANDIDATE
+
+RUN LOCALLY
+Requires Node.js 22 or newer. No application runtime dependencies or npm install
+are needed. In this project directory:
+  npm start
+Open http://127.0.0.1:4173 . This builds and serves only dist/, not repository files.
+Stop with Ctrl+C. HOST and PORT can be specified explicitly if needed.
+
+BUILD / DEPLOY
+  npm run build
+Publish only the contents of dist/ to a static HTTPS host. There is no backend,
+account service, database, analytics, external font, or runtime CDN dependency.
+Prefer an atomic deploy (upload a complete release, then switch it live) and keep
+the previous release for rollback. Do not upload files in-place during live use.
+Use a canonical trailing slash for a subdirectory, e.g. /games/first/ .
+Relative URLs, manifest scope, installation metadata, and offline resources work
+at the origin root or a nested directory. Do not serve the source sw.js as the
+production worker: the build supplies a content-derived cache version.
+
+GITHUB PAGES
+Repository: https://github.com/bkrabach/who-goes-first
+Website: https://bkrabach.github.io/who-goes-first/
+The pinned .github/workflows/pages.yml workflow tests and builds on every push
+to main, then publishes only dist/ using the official Pages artifact deployment.
+Enable Pages with GitHub Actions as its source before the first deployment.
+No repository content outside dist/ is deployed as part of the website.
+The expected project URL uses the repository name as a subdirectory.
+GitHub Pages supplies its own cache/security response headers and ignores
+_headers. The HTML carries an additional content-security policy for this host.
+
+The supplied _headers file is understood by compatible static hosts such as
+Netlify and Cloudflare Pages. For other hosts apply equivalent headers yourself:
+correct MIME types; no-cache/revalidation for HTML, JS, CSS, and service worker;
+X-Content-Type-Options: nosniff; the supplied compatible CSP and referrer policy.
+Do not use a long immutable cache lifetime for these stable filenames.
+
+build-info.json records input and output SHA-256 values. Builds use an explicit
+allowlist, verify staged bytes, and retain previous generated dist directories
+as .dist-previous-* (ignored by Git). They do not erase unrelated source work.
+
+OFFLINE / UPDATES
+The first online visit caches the game, themed surfaces, icons, and audio.
+An updated worker waits for the old app tabs to close; it never interrupts a spin.
+When Settings reports an update, close every tab/installed window for this site
+and reopen. Players and preferences remain in local browser storage.
+Private browsing or site-data cleanup can remove the cache and saved data.
+
+TESTS
+  npm test
+Browser suites use an installed Playwright (or playwright-core) and Chromium:
+  PLAYWRIGHT_MODULE=/absolute/path/to/playwright-or-playwright-core/index.mjs npm run test:e2e
+Alternatively install the development toolchain in your own environment and
+omit PLAYWRIGHT_MODULE when the 'playwright' package resolves normally.
+The repo does not auto-install browser packages or system dependencies.
+The build requires no browser tool; original image/audio assets are checked in.
+
+Tests cover picker/editor behavior, settings persistence, backup confirmation and
+validation, stale-Undo prevention, production CSP, mobile/tablet/desktop and
+landscape layouts, keyboard focus, offline reload, nested deployment paths,
+PWA installability metadata, worker upgrades, original-artwork rendering,
+progressive motion blur, coast-and-settle movement, cue timing, mixed audio
+headroom, and opaque-origin/no-network preview behavior.
+Optional source provenance checks accept YAY_SOURCE and WHEEL_SOURCE pointing to
+the original user-provided recordings. Those recordings are not bundled in full.
+
+DATA / ACCESSIBILITY
+Players and settings are local only. Export players from Settings before changing
+devices or clearing site data. Import replaces the current list only after explicit
+confirmation. No account is needed and there is no cross-device synchronization.
+Sound effects can be disabled, volume adjusted, and reduced motion selected.
+The operating system's reduced-motion preference is always respected.
+Approved default: 3.2-second coast/assisted settle with progressive directional
+blur, natural-speed wheel collage during spinning, and one Yay at the actual stop.
+
+RELEASE BOUNDARIES
+Publication is configured for the repository and website above. Consult the
+repository's Pages workflow and direct site checks for the current deployment
+state; a successful local build does not by itself establish publication.
+The HTML Canvas preview is sandboxed, may lack persistent storage, and deliberately
+disables service-worker registration; it is not an installation/offline proof.
+Chromium was exercised. Actual Safari/iOS and Android home-screen installation,
+physical audio output, and device performance still require final device checks.
+WebKit and Firefox test binaries were not present in the installed environment.
+
+RIGHTS / ATTRIBUTION
+See assets/audio-attribution.txt and the in-app Sound credits. The two sounds
+have different licenses. No blanket source or artwork license is granted here.
+Yay: CC BY 4.0, with author, source, license link, and trimming disclosure.
+Wheel: Sampling+ 1.0, with author, source, license link, and collage disclosure.
+Sampling+ is a retired license with distinct transformative-sampling and
+advertising restrictions. Attribution alone is not a determination that a use
+qualifies. Confirm the license fit or obtain permission before public release;
+do not silently substitute/relicense the sound or use it for unrelated ads.
+https://creativecommons.org/licenses/sampling+/1.0/
+
+FINAL PUBLICATION CHECK
+Deploy the tested static release using the Pages workflow. Compare every deployed
+file to the trusted build receipt:
+  PUBLISHED_URL=https://bkrabach.github.io/who-goes-first/ node scripts/verify-published.mjs
+Use VERIFIED_BUILD_INFO to point at a downloaded trusted Actions artifact receipt.
+Then verify that exact public URL on target phones: first load, installed launch,
+audio, orientation, and offline relaunch. Retain the separate audio license terms.

@@ -1,0 +1,23 @@
+YAY.mp3 by IFartInUrGeneralDirection -- https://freesound.org/s/61691/ -- License: Attribution 4.0
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+Changes for Who Goes First?: extracted only the third "Yay" from the supplied
+three-repeat MP3; trimmed surrounding room noise with a small natural lead-in
+and tail; applied 5ms edge fades; converted to lossless 16-bit PCM WAV.
+No pitch, speed, or volume normalization changes.
+
+Bike Wheel Spinning.aif by plivesey -- https://freesound.org/s/79073/ -- License: Sampling+
+License: Creative Commons Sampling Plus 1.0
+https://creativecommons.org/licenses/sampling+/1.0/
+
+Changes for Who Goes First?: six native-speed sections from 3.060–3.580,
+16.936–17.456, 30.034–30.554, 41.933–42.453, 50.978–51.498, and
+53.695–54.345 seconds of the supplied 56-second recording. Five 10ms linear
+crossfades join the naturally declining click rates into a 3.2-second wind-down.
+Original speed, pitch, and stereo preserved; no resampling or transposition.
+12ms fade-in and 120ms fade-out; stereo 16-bit PCM WAV.
+The app mixes this sound at 55% gain beneath the Yay. No full original included.
+Sampling+ allows sampling/creative transformation subject to its terms, including
+attribution and restrictions on advertising uses. This license is distinct from
+CC BY 4.0; see its linked terms. No endorsement by either creator is implied.

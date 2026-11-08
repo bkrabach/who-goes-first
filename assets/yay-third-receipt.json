@@ -1,0 +1,33 @@
+{
+  "sourceName": "61691__ifartinurgeneraldirection__yay.mp3",
+  "sourceSha256": "679ca101933e16d01c40c0765a01c2ff5da997dfce6060a5aea281ee6472ddf4",
+  "sourceDuration": 4.7542857142857144,
+  "detectedPhrases": [
+    {
+      "start": 0.28,
+      "end": 1.08
+    },
+    {
+      "start": 1.58,
+      "end": 2.44
+    },
+    {
+      "start": 3.35,
+      "end": 4.24
+    }
+  ],
+  "selectedInstance": 3,
+  "startSeconds": 3.3249886621315192,
+  "endSeconds": 4.32,
+  "duration": 0.9950113378684807,
+  "startSample": 146632,
+  "endSample": 190512,
+  "sampleRate": 44100,
+  "channels": 2,
+  "fadeMilliseconds": 5,
+  "normalization": "none",
+  "format": "16-bit PCM WAV",
+  "bytes": 175564,
+  "outputSha256": "1b8d408fb80b17a468766b2e8ffd2c766c0d5d17944bfd57297c9e50cf989275",
+  "method": "Third distinct waveform phrase only; 25ms lead-in, 80ms release padding, 5ms edge fades to avoid clicks. No changes to pitch or speed."
+}

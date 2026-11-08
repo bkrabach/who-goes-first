@@ -1,0 +1,15 @@
+{
+  "name": "who-goes-first",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A little chance, a lot less deliberation. An offline-first player picker.",
+  "scripts": {
+    "start": "npm run build && node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e": "npm run build && npm run preview && node tests/browser.mjs && node tests/upgrade.mjs && node tests/artwork.mjs && node tests/audio-browser.mjs && node tests/audio-sandbox.mjs && node tests/motion-browser.mjs && node tests/release-browser.mjs",
+    "preview": "node scripts/preview.mjs",
+    "build": "node scripts/build.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

@@ -1,0 +1,26 @@
+{
+  "sources": {
+    "spin": {
+      "hash": "f029e319647dc27058eda1945c442818570b2378802e9bde8870b2fe42b1636c",
+      "request": "wgf-clean-spin-lettering-01"
+    },
+    "players": {
+      "hash": "72bc28b20d8a8f9ad84e5abee3ca1bfe3b648d62ce2ad7cdce2115f786792322",
+      "request": "wgf-clean-players-lettering-01"
+    }
+  },
+  "model": "gpt-image-2.5-flare",
+  "method": "Reference-guided restoration of the original lettering. Low-alpha aura removed; transparent labels cropped without stretching. Full original plate preserved.",
+  "outputs": {
+    "spin-label.png": {
+      "sha256": "a406be927047271636c37d958d85fbf7d7eaca24341c3bfd5f57ee041c2db9de",
+      "width": 1524,
+      "height": 318
+    },
+    "players-label.png": {
+      "sha256": "33f4511385fcd68200a98c3ddf29015dd79353c32be5bb1be9f438aa9caf92f2",
+      "width": 1334,
+      "height": 458
+    }
+  }
+}
