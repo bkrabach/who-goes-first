@@ -41,9 +41,13 @@ as .dist-previous-* (ignored by Git). They do not erase unrelated source work.
 
 OFFLINE / UPDATES
 The first online visit caches the game, themed surfaces, icons, and audio.
-An updated worker waits for the old app tabs to close; it never interrupts a spin.
-When Settings reports an update, close every tab/installed window for this site
-and reopen. Players and preferences remain in local browser storage.
+An updated worker waits by default; it never automatically interrupts a spin.
+A small dot on Settings marks a ready update. Use Settings > Apply update when
+idle. Close other app tabs/installed windows first if prompted. The app reloads
+with the new release without clearing players or preferences.
+Older releases without this control need a one-time close of EVERY tab and
+installed window for this site, then reopen. Refresh alone may retain the old
+offline release. Do not clear browser data to update: that erases saved players.
 Private browsing or site-data cleanup can remove the cache and saved data.
 
 TESTS

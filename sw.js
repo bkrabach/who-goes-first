@@ -1,11 +1,25 @@
 const PREFIX = `who-goes-first:${self.registration.scope}:`;
 const CACHE = PREFIX + 'v1';
-const SHELL = ['./', './index.html', './styles.css', './app.js', './logic.js', './audio.js', './motion.js', './settings.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable.png', './icons/apple-touch-icon.png', './assets/shell-gold.png', './assets/machine-frame.png', './assets/players-label.png', './assets/spin-label.png', './assets/parchment-texture.png', './assets/yay-third.wav', './assets/wheel-spin.wav', './assets/audio-attribution.txt'];
+const SHELL = ['./', './index.html', './styles.css', './app.js', './logic.js', './audio.js', './motion.js', './settings.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable.png', './icons/apple-touch-icon.png', './assets/shell-gold.png', './assets/reel-redrawn.png', './assets/players-label.png', './assets/spin-label.png', './assets/parchment-redrawn.png', './assets/yay-third.wav', './assets/wheel-spin.wav', './assets/audio-attribution.txt'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL.map(path => new Request(new URL(path, self.location), { cache: 'reload' })))));
 });
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith(PREFIX) && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+self.addEventListener('message', event => {
+  if(event.data?.type!=='APPLY_UPDATE' || !event.source?.id || !event.ports[0])return;
+  event.waitUntil((async()=>{
+    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    const appWindows=windows.filter(client=>client.url.startsWith(self.registration.scope));
+    if(!appWindows.some(client=>client.id===event.source.id))return;
+    if(appWindows.some(client=>client.id!==event.source.id)){
+      event.ports[0].postMessage({status:'other-windows'});
+      return;
+    }
+    event.ports[0].postMessage({status:'accepted'});
+    await self.skipWaiting();
+  })().catch(()=>event.ports[0].postMessage({status:'failed'})));
 });
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;

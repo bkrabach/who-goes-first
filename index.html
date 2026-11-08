@@ -38,11 +38,9 @@
           <p class="sr-only" id="odds">6 players. Equal chances. No hard feelings.</p>
           <p class="sr-only" id="ready-text">READY TO ROLL</p>
       </section>
-      <p id="visible-result" class="visible-result" aria-hidden="true">6 players in. Everyone has an equal chance.</p>
     </main>
     <p id="storage-warning" class="storage-warning" role="alert" hidden></p>
     <p id="sound-error" class="storage-warning" role="status" hidden></p>
-    <footer><span id="offline-status" role="status">READY TO PLAY</span><span class="app-version">Who Goes First? · 1.0</span></footer>
   </div>
   <dialog id="players-dialog" aria-labelledby="players-title">
     <div class="dialog-heading"><div><p class="eyebrow">EVERYONE AT THE TABLE</p><h2 id="players-title">Who’s playing?</h2></div><button class="icon-button close-dialog" aria-label="Close players">×</button></div>
@@ -70,7 +68,9 @@
       <p id="preview-storage-note" class="muted" hidden>Interactive preview: saving is unavailable here. Open the published app to keep your players and preferences on this device.</p>
       <button id="install-help" class="button button-dark">Add to home screen</button>
       <p id="offline-detail" class="muted" role="status">Preparing offline play…</p>
+      <p id="offline-status" class="muted">READY TO PLAY</p>
       <p id="update-status" class="muted" role="status"></p>
+      <button id="apply-update" class="button button-dark" hidden>Apply update</button>
     </section>
     <section class="settings-section" aria-labelledby="backup-heading">
       <h3 id="backup-heading">Keep your crew</h3>

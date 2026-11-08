@@ -14,6 +14,7 @@ try {
   storageWarning = 'Saved players could not be loaded. Showing the original demo crew.';
 }
 let spinning = false;
+let applyingUpdate = false;
 let winner = null;
 let deleted = null;
 let toastTimer;
@@ -98,8 +99,9 @@ function renderSummary() {
     empty.textContent = 'The table’s a little quiet. Add a player or switch someone in to get started.';
     $('table-list').append(empty);
   }
-  $('spin-button').disabled = !active.length || spinning;
-  for (const id of ['settings-open','sound-credits']) $(id).disabled = spinning;
+  $('spin-button').disabled = !active.length || spinning || applyingUpdate;
+  for (const id of ['settings-open','sound-credits']) $(id).disabled = spinning || applyingUpdate;
+  $('apply-update').disabled = spinning || applyingUpdate;
   $('test-sound').disabled = spinning || $('test-sound').dataset.loaded !== 'true';
   $('test-wheel').disabled = spinning || $('test-wheel').dataset.loaded !== 'true';
   $('spin-label').textContent = spinning ? 'Picking a player…' : 'Who goes first?';
@@ -110,7 +112,6 @@ function renderSummary() {
   const previewStorage = document.documentElement.dataset.preview === 'true' && storageWarning.includes('could not be loaded');
   $('storage-warning').hidden = !storageWarning || previewStorage;
   $('preview-storage-note').hidden = !previewStorage;
-  $('visible-result').textContent = winner ? `${winner.name} goes first!` : active.length ? `${active.length} players in. Everyone has an equal chance.` : 'Add a player or switch someone in to spin.';
 }
 
 function updateAfterEdit() {
@@ -240,7 +241,7 @@ $('undo-delete').addEventListener('click', () => {
 });
 
 $('spin-button').addEventListener('click', async () => {
-  if (spinning || !activePlayers().length) return;
+  if (spinning || applyingUpdate || !activePlayers().length) return;
   const audioUnlocked = winnerSound.prepare();
   spinning = true;
   winner = null;
@@ -428,10 +429,53 @@ renderRestingReel();
 connectivity();
 if ('serviceWorker' in navigator && document.documentElement.dataset.preview !== 'true') {
   navigator.serviceWorker.register('./sw.js').then(registration => {
+    let checkedAt=0;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(applyingUpdate)location.reload();
+    });
     function updateAvailable(){
-      if(registration.waiting)$('update-status').textContent='An update is ready. Close all app tabs and reopen to use it. Your saved players and settings will stay.';
+      if(!registration.waiting)return;
+      $('settings-open').classList.add('update-ready');
+      $('settings-open').setAttribute('aria-label','Settings — update available');
+      $('apply-update').hidden=false;
+      if(!applyingUpdate)$('update-status').textContent='An update is ready. Apply it here without clearing your saved players or settings.';
+    }
+    function checkForUpdate(){
+      if(!navigator.onLine||Date.now()-checkedAt<60000)return;
+      checkedAt=Date.now();
+      registration.update().then(updateAvailable).catch(()=>{});
     }
     updateAvailable();
+    checkForUpdate();
+    window.addEventListener('online',checkForUpdate);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForUpdate();});
+    $('apply-update').addEventListener('click',()=>{
+      if(spinning||applyingUpdate||!registration.waiting)return;
+      applyingUpdate=true;
+      renderSummary();
+      $('manage-top').disabled=true;
+      $('update-status').textContent='Applying update…';
+      const channel=new MessageChannel();
+      const timer=setTimeout(()=>{
+        channel.port1.close();
+        $('update-status').textContent='Update is still pending. Close all app tabs and installed windows, then reopen. Your saved players will stay.';
+      },10000);
+      function retry(message){
+        clearTimeout(timer);channel.port1.close();
+        applyingUpdate=false;
+        $('manage-top').disabled=false;
+        renderSummary();
+        $('update-status').textContent=message;
+      }
+      channel.port1.onmessage=({data})=>{
+        if(data?.status==='accepted')return;
+        retry(data?.status==='other-windows'
+          ? 'Close other Who Goes First? tabs and installed windows, then try Apply update again. Your saved players will stay.'
+          : 'The update could not be applied. Close all app windows and reopen to finish updating.');
+      };
+      try{registration.waiting.postMessage({type:'APPLY_UPDATE'},[channel.port2]);}
+      catch{retry('The update is no longer waiting. Close all app windows and reopen to finish updating.');}
+    });
     registration.addEventListener('updatefound',()=>{
       const worker=registration.installing;
       worker?.addEventListener('statechange',()=>{if(worker.state==='installed')updateAvailable();});

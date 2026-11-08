@@ -1,0 +1,15 @@
+{
+  "request": "wgf-reel-redraw-01",
+  "model": "gpt-image-2.5-flare",
+  "source": "319db8b76d7cc217b321f04c5c62411cf320fe9efea369e4802f28df547a4e13",
+  "reference": "b0e7f17d692507870ef61af06d9df8ed195dd2598c3fab979e4c4ebea6e6f922",
+  "method": "Reference-guided redraw of original ornament, parchment, bevel and inward markers. Low-alpha fringe removed; border bands registered to original live-name geometry at 2x. Original source plate, machine crop, approved buttons and audio retained unchanged.",
+  "dimensions": {
+    "width": 1170,
+    "height": 1064
+  },
+  "outputs": {
+    "reel-redrawn.png": "5995d37270c934c7da0bd6588446bd02fc5088a7b38e274b09a7dead88b9fedd",
+    "parchment-redrawn.png": "9c3910c3d7ecffa60b536b4fc8b74cb195c3392006580b15377b7b184d9fbd1c"
+  }
+}

@@ -44,7 +44,7 @@ try {
   await page.screenshot({ path: resolve(out, 'original-clean-artwork.png'),clip:{x:Math.round(machineBox.x),y:Math.round(machineBox.y),width:585,height:532} });
   await page.locator('#reel-track').evaluate(node => {node.style.visibility = '';});
   await page.locator('#settings-open').evaluate(node => {node.style.visibility = '';});
-  const image = await readFile(resolve(root, 'assets/machine-frame.png'));
+  const image = await readFile(resolve(root, 'assets/reel-redrawn.png'));
   const pixels = await readFile(resolve(out, 'original-clean-artwork.png'));
   const exact = await page.evaluate(async data => {
     const load = async src => {
@@ -52,9 +52,9 @@ try {
       img.src = `data:image/png;base64,${src}`;
       await img.decode();
       const c = document.createElement('canvas');
-      c.width = img.naturalWidth;
-      c.height = img.naturalHeight;
-      c.getContext('2d').drawImage(img,0,0);
+      c.width = 585;
+      c.height = 532;
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
       return c.getContext('2d').getImageData(0,0,c.width,c.height).data;
     };
     const a = await load(data.a), b = await load(data.b);
@@ -63,7 +63,7 @@ try {
     return {different,length:a.length};
   }, {a:image.toString('base64'), b:pixels.toString('base64')});
   assert.equal(exact.different, 0);
-  pass('opaque original machine artwork is pixel-identical; transparent corners reveal the continuous backing');
+  pass('redrawn high-resolution reel renders faithfully at original geometry with no extra text overlays');
   await page.emulateMedia({ reducedMotion:'no-preference' });
   await page.locator('#spin-button').click();
   await page.waitForFunction(() => document.querySelector('#reel-track').getAnimations().length === 1);
@@ -127,7 +127,7 @@ try {
     await img.decode();
     return img.naturalWidth;
   });
-  assert.equal(loaded,585);
+  assert.equal(loaded,1170);
   pass('original artwork remains available after a real offline reload');
   await context.close();
 } finally {

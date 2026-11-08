@@ -78,6 +78,57 @@ try {
   assert.ok(keys.some(key => key.endsWith(':two')));
   assert.ok(!keys.some(key => key.endsWith(':one')));
   checks.push('new release reloads offline; cleanup preserves other apps’ caches');
+  await context.setOffline(false);
+  await inspection.evaluate(()=>{
+    localStorage.setItem('who-goes-first:players:v1',JSON.stringify({version:1,players:[
+      {id:'keep-a',name:'Keep Alice',active:true},{id:'keep-b',name:'Keep Bob',active:true}
+    ]}));
+    localStorage.setItem('who-goes-first:settings:v1',JSON.stringify({version:1,settings:{sound:true,volume:40,motion:'system'}}));
+  });
+  await inspection.reload();
+  const saved=await inspection.evaluate(()=>({players:localStorage.getItem('who-goes-first:players:v1'),settings:localStorage.getItem('who-goes-first:settings:v1')}));
+  const other=await context.newPage();await other.goto(base);
+  await inspection.locator('#spin-button').click();
+  await inspection.locator('#reel-track').evaluate(track=>track.getAnimations()[0].pause());
+  release='three';
+  await inspection.evaluate(async()=>{
+    const registration=await navigator.serviceWorker.getRegistration();
+    await registration.update();
+    if(!registration.waiting)await new Promise(resolve=>{
+      const worker=registration.installing;
+      worker.addEventListener('statechange',()=>{if(worker.state==='installed')resolve();});
+    });
+  });
+  await inspection.waitForFunction(()=>!document.querySelector('#apply-update').hidden);
+  assert.ok(await inspection.locator('#apply-update').isDisabled());
+  await inspection.locator('#apply-update').dispatchEvent('click');
+  assert.equal(await inspection.evaluate(()=>window.testRelease),'two');
+  assert.equal(await inspection.locator('#reel-track').evaluate(track=>track.getAnimations()[0].playState),'paused');
+  await inspection.locator('#reel-track').evaluate(track=>track.getAnimations()[0].finish());
+  await inspection.waitForFunction(()=>document.querySelector('#result').textContent.endsWith('goes first!'));
+  checks.push('waiting update cannot apply during a spin or interrupt its landing');
+  await inspection.locator('#settings-open').click();
+  await inspection.locator('#apply-update').click();
+  await inspection.waitForFunction(()=>document.querySelector('#update-status').textContent.includes('Close other'));
+  assert.equal(await inspection.evaluate(()=>window.testRelease),'two');
+  assert.equal(await other.evaluate(()=>window.testRelease),'two');
+  assert.equal(await inspection.locator('#spin-button').isDisabled(),false);
+  await other.close();
+  const navigation=inspection.waitForNavigation();
+  await inspection.locator('#apply-update').click();
+  await navigation;
+  await inspection.waitForFunction(()=>window.testRelease==='three');
+  assert.equal(await inspection.title(),'Release three');
+  assert.deepEqual(await inspection.evaluate(()=>({players:localStorage.getItem('who-goes-first:players:v1'),settings:localStorage.getItem('who-goes-first:settings:v1')})),saved);
+  await inspection.setViewportSize({width:1920,height:1080});
+  const geometry=await inspection.evaluate(()=>{
+    const r=document.querySelector('.original-screen').getBoundingClientRect();
+    return {ratio:r.width/r.height,width:r.width};
+  });
+  assert.ok(Math.abs(geometry.ratio-640/920)<.001&&geometry.width<=640);
+  await context.setOffline(true);await inspection.reload();
+  assert.equal(await inspection.evaluate(()=>window.testRelease),'three');
+  checks.push('explicit update refuses other app windows, then reloads safely with saved data and vertical layout intact');
   for (const check of checks) console.log(`PASS ${check}`);
   await context.close();
 } finally {

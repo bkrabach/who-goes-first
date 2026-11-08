@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const dist = resolve(root, 'dist');
 const stage = await mkdtemp(resolve(root,'.dist-stage-'));
 const files = ['index.html', 'styles.css', 'app.js', 'logic.js', 'audio.js', 'motion.js', 'settings.js', 'manifest.webmanifest', '_headers', 'RELEASE.txt'];
-const assets = ['main-screen.png','gold-texture.png','shell-gold.png','artwork-receipt.json','machine-frame.png','players-label.png','spin-label.png','parchment-texture.png','yay-third.wav','yay-third-receipt.json','wheel-spin.wav','wheel-spin-receipt.json','audio-attribution.txt'];
+const assets = ['main-screen.png','gold-texture.png','shell-gold.png','artwork-receipt.json','machine-frame.png','reel-redrawn.png','parchment-redrawn.png','reel-redraw-receipt.json','players-label.png','spin-label.png','parchment-texture.png','yay-third.wav','yay-third-receipt.json','wheel-spin.wav','wheel-spin-receipt.json','audio-attribution.txt'];
 const icons = ['icon.svg','icon-192.png','icon-512.png','icon-maskable.png','apple-touch-icon.png'];
 const hashes = {};
 for (const file of [...files,...assets.map(file=>`assets/${file}`),...icons.map(file=>`icons/${file}`)]) {

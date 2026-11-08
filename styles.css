@@ -43,23 +43,13 @@ button[hidden], [hidden] { display: none !important; }
 }
 .original-screen {
   position: relative;
-  width: min(100%, 640px, calc((100svh - 46px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 640 / 920));
+  width: min(100%, 640px, calc((100svh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 640 / 920));
   min-width: min(100%,280px);
   margin: 0 auto;
   aspect-ratio: 640 / 920;
   container-type: inline-size;
   isolation: isolate;
   background: transparent;
-}
-.visible-result {
-  min-height: 24px;
-  margin: 0;
-  padding: 4px 12px;
-  text-align: center;
-  color: #fff4d4;
-  text-shadow: 0 1px 2px #492700;
-  font-size: 12px;
-  line-height: 1.4;
 }
 .art-control {
   position: absolute;
@@ -91,6 +81,7 @@ button[hidden], [hidden] { display: none !important; }
 .settings-control:hover { background: linear-gradient(#d5a651aa,#95671eaa),url('./assets/shell-gold.png') center/cover; }
 .settings-control:active:not(:disabled) { box-shadow: inset 0 3px 5px #5a310b80,0 0 0 3px #d7ad4d88; }
 .settings-control:disabled { opacity: .7; }
+.settings-control.update-ready::after { content: ''; position: absolute; width: 10px; height: 10px; top: 3px; right: 3px; border-radius: 50%; border: 1px solid #593209; background: #ffd369; box-shadow: 0 0 0 2px #8b580c; }
 .players-control {
   left: 61.875%;
   top: 1.195652%;
@@ -119,7 +110,7 @@ button[hidden], [hidden] { display: none !important; }
   top: max(54px,9.782609%);
   width: 91.40625%;
   height: 57.826087%;
-  background: url('./assets/machine-frame.png') center / 100% 100% no-repeat;
+  background: url('./assets/reel-redrawn.png') center / 100% 100% no-repeat;
   container-type: inline-size;
   pointer-events: none;
 }
@@ -152,18 +143,6 @@ button[hidden], [hidden] { display: none !important; }
   text-shadow: 0 1px 0 #ffecb84d;
 }
 .reel-name.long-name { font-size: 4.786325cqw; }
-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  min-height: 22px;
-  padding: 0 10px;
-  color: #fff3cf;
-  font-size: 9px;
-  text-shadow: 0 1px 2px #3e2500;
-}
-footer > span { font-size: 8px; letter-spacing: .7px; }
 .text-button {
   background: none;
   border: 0;
@@ -175,7 +154,6 @@ footer > span { font-size: 8px; letter-spacing: .7px; }
   min-height: 36px;
 }
 .text-button:hover { color: var(--rust); }
-footer .text-button:hover { color: #fff; }
 .sr-only {
   position: absolute;
   width: 1px;
@@ -194,7 +172,7 @@ dialog {
   padding: 27px;
   border: 7px solid #a67419;
   border-radius: 16px;
-  background: linear-gradient(#f9ebc8b8,#e8cc8b99), url('./assets/parchment-texture.png') center / cover;
+  background: linear-gradient(#f9ebc8b8,#e8cc8b99), url('./assets/parchment-redrawn.png') center / cover;
   color: var(--ink);
   box-shadow: inset 0 0 0 2px #ffe2a0aa,inset 0 0 24px #8a5f2255,0 0 0 2px #593a0d,0 25px 100px #21190c90;
   overscroll-behavior: contain;
@@ -318,7 +296,6 @@ html[data-reduce-motion=true] .reel-window { filter: none; }
   .add-form { flex-direction: column; }
   .player-row { gap: 5px; }
   .dialog-heading h2 { font-size: 27px; }
-  footer > span { letter-spacing: 0; font-size: 7px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

@@ -118,6 +118,9 @@ try{
   pass('phone, tablet, desktop, and landscape controls stay at least 44px and all themed panels fit without horizontal overflow');
   assert.equal(await page.locator('.app-nav #sound-credits').count(),0);
   assert.equal(await page.locator('.app-nav').count(),0);
+  assert.equal(await page.locator('#visible-result, .site footer').count(),0);
+  assert.equal(await page.locator('#settings-dialog #offline-status').count(),1);
+  assert.equal(await page.locator('#result[aria-live=polite].sr-only').count(),1);
   assert.equal(await page.locator('#manage-nav').count(),0);
   assert.equal(await page.locator('.original-screen #settings-open svg').count(),1);
   assert.equal(await page.locator('#settings-dialog .dialog-footer #sound-credits').count(),1);
