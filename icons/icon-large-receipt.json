@@ -1,0 +1,87 @@
+{
+  "request": "wgf-original-icon-square-02",
+  "model": "gpt-image-2.5-flare",
+  "originalReference": "500d22ad77c120eac8023002f155ca414dd9884ff61a9bf980f255c5aa326da8",
+  "source": "a2b8cf94a33fffdfbea677da2914a7cdcc9effaf496f9ac89d8304baa4329102",
+  "method": "Original lettering retained. Any icons crop excess gold with 20px lettering margin; maskable icons center and fit actual three word outlines, including 10px edge allowance, inside a 39.5% circular safe zone instead of shrinking the full source square to 56%. Opaque square corners; OS applies its own mask.",
+  "outputs": {
+    "who-goes-first-large-32.png": {
+      "size": 32,
+      "sha256": "0948211ed70777bf1707c6ad2a662966b30cd937d09865b1f3bc65e929af83a2",
+      "opaque": true,
+      "maskable": false,
+      "letterBounds": {
+        "left": 46,
+        "right": 976,
+        "top": 70,
+        "bottom": 940
+      },
+      "maskableSourceScale": 0.6732239645061683
+    },
+    "who-goes-first-large-192.png": {
+      "size": 192,
+      "sha256": "44116b116f7522f5f82361b2a8c4d08434bc48f8bab1306008a493329fe74693",
+      "opaque": true,
+      "maskable": false,
+      "letterBounds": {
+        "left": 46,
+        "right": 976,
+        "top": 70,
+        "bottom": 940
+      },
+      "maskableSourceScale": 0.6732239645061683
+    },
+    "who-goes-first-large-512.png": {
+      "size": 512,
+      "sha256": "28b009d2d24ef6f512f170bf3fcf3a28ebc9dc1b661101b49637f824ae464cdf",
+      "opaque": true,
+      "maskable": false,
+      "letterBounds": {
+        "left": 46,
+        "right": 976,
+        "top": 70,
+        "bottom": 940
+      },
+      "maskableSourceScale": 0.6732239645061683
+    },
+    "who-goes-first-large-1024.png": {
+      "size": 1024,
+      "sha256": "5e524009932490a7257c42bd010fa41fc50fc5d4774704be4c6cf6175a8001c6",
+      "opaque": true,
+      "maskable": false,
+      "letterBounds": {
+        "left": 46,
+        "right": 976,
+        "top": 70,
+        "bottom": 940
+      },
+      "maskableSourceScale": 0.6732239645061683
+    },
+    "who-goes-first-large-maskable-512.png": {
+      "size": 512,
+      "sha256": "8a3d1453792b261b2c95d2c96f25b08a556a65cc0787a128ec3bc19b24577c6b",
+      "opaque": true,
+      "maskable": true,
+      "letterBounds": {
+        "left": 46,
+        "right": 976,
+        "top": 70,
+        "bottom": 940
+      },
+      "maskableSourceScale": 0.6732239645061683
+    },
+    "who-goes-first-large-apple-180.png": {
+      "size": 180,
+      "sha256": "99c459e6c13cce2127408b18f27a2d3e019b98b4a0f834aedfbcfd16ec26f730",
+      "opaque": true,
+      "maskable": false,
+      "letterBounds": {
+        "left": 46,
+        "right": 976,
+        "top": 70,
+        "bottom": 940
+      },
+      "maskableSourceScale": 0.6732239645061683
+    }
+  }
+}

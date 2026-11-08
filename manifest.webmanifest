@@ -12,9 +12,9 @@
   "lang": "en",
   "categories": ["games", "utilities"],
   "icons": [
-    { "src": "./icons/who-goes-first-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./icons/who-goes-first-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./icons/who-goes-first-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
-    { "src": "./icons/who-goes-first-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "./icons/who-goes-first-large-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/who-goes-first-large-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/who-goes-first-large-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/who-goes-first-large-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

@@ -39,6 +39,16 @@ html[data-artifact-framed=true] body {
   background: transparent; user-select: none;
   app-region: drag; -webkit-app-region: drag;
 }
+html[data-window-overlay=true] body::before,
+html[data-window-overlay=true] dialog::before {
+  content: ''; position: fixed; z-index: 19;
+  left: 0; top: 0; width: 100%;
+  height: var(--window-titlebar-height);
+  background: #9d6b0d;
+  pointer-events: none;
+}
+.modal-window-drag-strip { display: none; }
+html[data-window-overlay=true] .modal-window-drag-strip { display: block; }
 button, input, a, dialog { app-region: no-drag; -webkit-app-region: no-drag; }
 html[data-window-overlay=true] dialog {
   margin-top: calc(var(--window-titlebar-height) + 12px);
@@ -313,6 +323,7 @@ h2 { font: bold 32px/1.1 var(--serif); letter-spacing: -.6px; margin: 10px 0 8px
 }
 #install-dialog > p, .install-instructions p { font-size: 14px; line-height: 1.6; }
 .muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.update-attention { padding: 12px; border-left: 4px solid #945d10; border-radius: 3px; background: #fff2c5; color: #59360d; font-weight: 600; }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; gap: 18px; width: min(400px, calc(100% - 32px)); padding: 8px 16px; border-radius: 10px; background: var(--ink); color: var(--paper); font-size: 13px; box-shadow: 0 6px 25px #0002; z-index: 10; }
 .no-script { padding: 20px; color: #fff3cf; background: #633c0b; }
 .storage-warning { margin: 0; padding: 12px; background: #fff1c7; color: #542e0d; font-size: 13px; line-height: 1.5; }

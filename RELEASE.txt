@@ -45,6 +45,11 @@ An updated worker waits by default; it never automatically interrupts a spin.
 A small dot on Settings marks a ready update. Use Settings > Apply update when
 idle. Close other app tabs/installed windows first if prompted. The app reloads
 with the new release without clearing players or preferences.
+If another app tab/window is open, updating pauses rather than interrupting it.
+The highlighted status reports how many other windows were found and the action
+becomes Retry update. Stale waiting badges are cleared. If an activation request
+has an uncertain outcome, play remains locked with explicit safe-reopen guidance;
+it must not unlock and then reload in the middle of a new spin.
 Older releases without this control need a one-time close of EVERY tab and
 installed window for this site, then reopen. Refresh alone may retain the old
 offline release. Do not clear browser data to update: that erases saved players.
@@ -90,6 +95,10 @@ window button is a user-triggered best-effort resize, not an aspect-ratio lock;
 browser/OS window rules can refuse it. No automatic resizing is performed.
 New square, opaque icons use fresh filenames and a separate maskable safe-zone
 variant. Existing Dock/home-screen icons may update on the browser's schedule.
+The large-icon revision fits the actual lettering, not the full square's empty
+corners, into the circular mask-safe zone. Original bitmap artwork is unchanged;
+maskable lettering is about 20% larger linearly. New filenames avoid cached-image
+ambiguity; native Dock refresh timing is still controlled by the OS/browser.
 The macOS "Data Access Blocked" notification is an OS/browser integration issue
 whose denied resource has not been identified. The website requests no broad
 filesystem access; imports use an explicitly selected file and exports a
@@ -107,9 +116,12 @@ when there is at least 48px of extra horizontal space. Otherwise it remains
 edge-to-edge with no device trim. A non-repeating transparent layer adds large
 stains, scratches and worn patches below the unchanged reel and controls.
 The wood and patina are bundled in both offline releases and the Canvas preview.
-Supporting installed desktop browsers may blend artwork behind native window
-controls using Window Controls Overlay. A transparent, reserved strip remains
-draggable; content and dialogs stay below it. This is not desktop transparency.
+Supporting installed desktop browsers use Window Controls Overlay with one solid
+gold bar spanning the native window controls and no duplicate title drawn by the
+website. A reserved strip remains draggable, including inside each native modal;
+clicking that region must not dismiss Settings. Content and dialogs stay below it.
+The app name remains in browser/OS metadata; a fallback native title bar is owned
+by the browser and cannot be styled or have its title hidden by ordinary CSS.
 Unsupported browsers retain their normal title bar. Native OS dragging and window
 controls require device testing; geometry tests do not establish that integration.
 

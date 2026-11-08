@@ -6,6 +6,15 @@ export function initializeWindowChrome(){
   const strip=document.getElementById('window-drag-strip');
   const overlay=navigator.windowControlsOverlay;
   if(!strip||!overlay||document.documentElement.dataset.preview==='true'||window.top!==window.self)return;
+  // A body strip is inert behind a native modal. Keep an equivalent drag
+  // surface inside each top-layer dialog so dragging never dismisses it.
+  for(const modal of document.querySelectorAll('dialog')){
+    const modalStrip=document.createElement('div');
+    modalStrip.className='window-drag-strip modal-window-drag-strip';
+    modalStrip.setAttribute('aria-hidden','true');
+    modalStrip.addEventListener('click',event=>event.stopPropagation());
+    modal.prepend(modalStrip);
+  }
   let frame;
   function reset(){
     strip.hidden=true;

@@ -1,6 +1,6 @@
 const PREFIX = `who-goes-first:${self.registration.scope}:`;
 const CACHE = PREFIX + 'v1';
-const SHELL = ['./', './index.html', './styles.css', './app.js', './logic.js', './audio.js', './motion.js', './gestures.js', './settings.js', './install.js', './manifest.webmanifest', './icons/who-goes-first-32.png', './icons/who-goes-first-192.png', './icons/who-goes-first-512.png', './icons/who-goes-first-1024.png', './icons/who-goes-first-maskable-512.png', './icons/who-goes-first-apple-180.png', './assets/shell-gold.png', './assets/reel-redrawn.png', './assets/players-label.png', './assets/spin-label.png', './assets/parchment-redrawn.png', './assets/yay-third.wav', './assets/wheel-spin.wav', './assets/audio-attribution.txt'];
+const SHELL = ['./', './index.html', './styles.css', './app.js', './logic.js', './audio.js', './motion.js', './gestures.js', './settings.js', './install.js', './manifest.webmanifest', './icons/who-goes-first-large-32.png', './icons/who-goes-first-large-192.png', './icons/who-goes-first-large-512.png', './icons/who-goes-first-large-1024.png', './icons/who-goes-first-large-maskable-512.png', './icons/who-goes-first-large-apple-180.png', './assets/shell-gold.png', './assets/reel-redrawn.png', './assets/players-label.png', './assets/spin-label.png', './assets/parchment-redrawn.png', './assets/yay-third.wav', './assets/wheel-spin.wav', './assets/audio-attribution.txt'];
 SHELL.push('./assets/workbench-illustrated.png','./assets/device-patina.png');
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL.map(path => new Request(new URL(path, self.location), { cache: 'reload' })))));
@@ -15,7 +15,7 @@ self.addEventListener('message', event => {
     const appWindows=windows.filter(client=>client.url.startsWith(self.registration.scope));
     if(!appWindows.some(client=>client.id===event.source.id))return;
     if(appWindows.some(client=>client.id!==event.source.id)){
-      event.ports[0].postMessage({status:'other-windows'});
+      event.ports[0].postMessage({status:'other-windows',otherWindowCount:appWindows.filter(client=>client.id!==event.source.id).length});
       return;
     }
     event.ports[0].postMessage({status:'accepted'});

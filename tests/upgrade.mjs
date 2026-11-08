@@ -110,6 +110,9 @@ try {
   await inspection.locator('#settings-open').click();
   await inspection.locator('#apply-update').click();
   await inspection.waitForFunction(()=>document.querySelector('#update-status').textContent.includes('Close other'));
+  assert.match(await inspection.locator('#update-status').textContent(),/Update paused — 1 other window or tab is/);
+  assert.equal(await inspection.locator('#apply-update').textContent(),'Retry update');
+  assert.ok(await inspection.locator('#update-status').evaluate(node=>node.classList.contains('update-attention')));
   assert.equal(await inspection.evaluate(()=>window.testRelease),'two');
   assert.equal(await other.evaluate(()=>window.testRelease),'two');
   assert.equal(await inspection.locator('#spin-button').isDisabled(),false);
@@ -129,6 +132,54 @@ try {
   await context.setOffline(true);await inspection.reload();
   assert.equal(await inspection.evaluate(()=>window.testRelease),'three');
   checks.push('explicit update refuses other app windows, then reloads safely with saved data and vertical layout intact');
+  await context.setOffline(false);
+  for(const scenario of ['stale','timeout','accepted-timeout','controller']){
+    const mocked=await browser.newContext();
+    await mocked.addInitScript(scenario=>{
+      const registration=new EventTarget();
+      registration.waiting={postMessage(_message,ports){
+        if(scenario==='accepted-timeout')ports[0].postMessage({status:'accepted'});
+      }};
+      registration.update=()=>Promise.resolve();
+      window.updateTestRegistration=registration;
+      window.updateTestController={old:true};
+      Object.defineProperty(navigator.serviceWorker,'controller',{get:()=>window.updateTestController});
+      navigator.serviceWorker.register=()=>Promise.resolve(registration);
+      Object.defineProperty(navigator.serviceWorker,'ready',{get:()=>Promise.resolve(registration)});
+      const timeout=window.setTimeout;
+      window.setTimeout=(callback,delay,...args)=>timeout(callback,delay===10000?30:delay,...args);
+    },scenario);
+    const mp=await mocked.newPage();await mp.goto(base);
+    await mp.locator('#settings-open').click();
+    await mp.locator('#apply-update').waitFor({state:'visible'});
+    if(scenario==='stale'){
+      await mp.evaluate(()=>{updateTestRegistration.waiting=null;});
+      await mp.locator('#apply-update').click();
+      assert.ok(await mp.locator('#apply-update').isHidden());
+      assert.match(await mp.locator('#update-status').textContent(),/No update is waiting/);
+      assert.equal(await mp.locator('#settings-open').evaluate(node=>node.classList.contains('update-ready')),false);
+    }else if(scenario==='controller'){
+      await mp.keyboard.press('Escape');await mp.locator('#spin-button').click();
+      await mp.locator('#reel-track').evaluate(track=>track.getAnimations()[0].pause());
+      await mp.evaluate(()=>{
+        updateTestRegistration.waiting=null;updateTestController={new:true};
+        navigator.serviceWorker.dispatchEvent(new Event('controllerchange'));
+      });
+      assert.equal(await mp.locator('#apply-update').textContent(),'Reload updated app');
+      assert.ok(await mp.locator('#apply-update').isDisabled());
+      assert.equal(await mp.locator('#reel-track').evaluate(track=>track.getAnimations()[0].playState),'paused');
+      await mp.locator('#reel-track').evaluate(track=>track.getAnimations()[0].finish());
+      await mp.waitForFunction(()=>!document.querySelector('#apply-update').disabled);
+    }else{
+      await mp.locator('#apply-update').click();
+      await mp.waitForFunction(()=>document.querySelector('#apply-update').textContent==='Reopen app to finish');
+      assert.ok(await mp.locator('#apply-update').isDisabled());
+      assert.ok(await mp.locator('#spin-button').isDisabled());
+      assert.match(await mp.locator('#update-status').textContent(),/Your saved players and settings will stay/);
+    }
+    await mocked.close();
+  }
+  checks.push('stale update UI clears; controller changes never interrupt a spin; uncertain activation keeps an explicit safe-reopen state');
   for (const check of checks) console.log(`PASS ${check}`);
   await context.close();
 } finally {

@@ -18,6 +18,7 @@ try {
 let spinning = false;
 let dragging = false;
 let applyingUpdate = false;
+let refreshUpdateStatus=()=>{};
 let winner = null;
 let deleted = null;
 let toastTimer;
@@ -232,7 +233,6 @@ function openPlayers() {
 $('manage-top').addEventListener('click', openPlayers);
 document.querySelectorAll('.close-dialog').forEach(button => button.addEventListener('click', () => dialog.close()));
 dialog.addEventListener('close', () => { document.body.append($('toast')); $('manage-top').focus(); });
-dialog.addEventListener('click', event => { if (event.target === dialog && (event.clientX < dialog.getBoundingClientRect().left || event.clientX > dialog.getBoundingClientRect().right || event.clientY < dialog.getBoundingClientRect().top || event.clientY > dialog.getBoundingClientRect().bottom)) dialog.close(); });
 
 $('add-form').addEventListener('submit', event => {
   event.preventDefault();
@@ -401,11 +401,13 @@ function saveSettings() {
   renderSettings();
 }
 for (const id of ['sound-enabled','sound-volume','reduce-motion']) $(id).addEventListener('input',saveSettings);
-$('settings-open').addEventListener('click',()=>{if(!spinning&&!dragging&&!applyingUpdate){renderSettings();$('settings-dialog').showModal();}});
+$('settings-open').addEventListener('click',()=>{if(!spinning&&!dragging&&!applyingUpdate){renderSettings();refreshUpdateStatus();$('settings-dialog').showModal();}});
 for (const id of ['settings-close','settings-done']) $(id).addEventListener('click',()=>$('settings-dialog').close());
 document.querySelectorAll('dialog').forEach(modal=>{
   modal.addEventListener('click',event=>{
     if(event.target !== modal)return;
+    const titlebarHeight=parseFloat(document.documentElement.style.getPropertyValue('--window-titlebar-height'))||0;
+    if(document.documentElement.dataset.windowOverlay==='true'&&event.clientY<titlebarHeight)return;
     const bounds=modal.getBoundingClientRect();
     if(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom)modal.close();
   });
@@ -485,17 +487,31 @@ renderRestingReel();
 connectivity();
 if ('serviceWorker' in navigator && document.documentElement.dataset.preview !== 'true') {
   navigator.serviceWorker.register('./sw.js').then(registration => {
-    let checkedAt=0;
+    let checkedAt=0,reloadAvailable=false,refused=false;
+    let previousController=navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
-      if(applyingUpdate)location.reload();
+      if(applyingUpdate){location.reload();return;}
+      const controller=navigator.serviceWorker.controller;
+      if(previousController&&controller!==previousController)reloadAvailable=true;
+      previousController=controller;
+      updateAvailable();
     });
     function updateAvailable(){
-      if(!registration.waiting)return;
-      $('settings-open').classList.add('update-ready');
-      $('settings-open').setAttribute('aria-label','Settings — update available');
-      $('apply-update').hidden=false;
-      if(!applyingUpdate)$('update-status').textContent='An update is ready. Apply it here without clearing your saved players or settings.';
+      const ready=!!registration.waiting||reloadAvailable;
+      $('settings-open').classList.toggle('update-ready',ready);
+      $('settings-open').setAttribute('aria-label',ready?'Settings — update available':'Settings');
+      $('apply-update').hidden=!ready&&!applyingUpdate;
+      if(applyingUpdate)return;
+      $('apply-update').textContent=reloadAvailable?'Reload updated app':refused&&ready?'Retry update':'Apply update';
+      if(reloadAvailable)$('update-status').textContent='The update has finished downloading. Reload this window to use it. Your saved players will stay.';
+      else if(!ready){
+        refused=false;
+        $('update-status').textContent='No update is waiting. You can keep playing.';
+        $('update-status').classList.remove('update-attention');
+      }
+      else if(!refused)$('update-status').textContent='An update is ready. Apply it here without clearing your saved players or settings.';
     }
+    refreshUpdateStatus=updateAvailable;
     function checkForUpdate(){
       if(!navigator.onLine||Date.now()-checkedAt<60000)return;
       checkedAt=Date.now();
@@ -506,30 +522,39 @@ if ('serviceWorker' in navigator && document.documentElement.dataset.preview !==
     window.addEventListener('online',checkForUpdate);
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForUpdate();});
     $('apply-update').addEventListener('click',()=>{
-      if(spinning||dragging||applyingUpdate||!registration.waiting)return;
+      if(spinning||dragging||applyingUpdate)return;
+      if(reloadAvailable){applyingUpdate=true;renderSummary();location.reload();return;}
+      const worker=registration.waiting;
+      if(!worker){updateAvailable();return;}
       applyingUpdate=true;
       renderSummary();
       $('manage-top').disabled=true;
       $('update-status').textContent='Applying update…';
+      $('update-status').classList.add('update-attention');
+      $('apply-update').textContent='Applying…';
       const channel=new MessageChannel();
       const timer=setTimeout(()=>{
         channel.port1.close();
-        $('update-status').textContent='Update is still pending. Close all app tabs and installed windows, then reopen. Your saved players will stay.';
+        $('update-status').textContent='The update has not finished responding. To finish safely, close every Who Goes First? tab and installed window, then reopen the app. Your saved players and settings will stay.';
+        $('apply-update').textContent='Reopen app to finish';
       },10000);
       function retry(message){
         clearTimeout(timer);channel.port1.close();
         applyingUpdate=false;
         $('manage-top').disabled=false;
         renderSummary();
+        refused=true;
+        updateAvailable();
         $('update-status').textContent=message;
       }
       channel.port1.onmessage=({data})=>{
         if(data?.status==='accepted')return;
+        const count=Number.isInteger(data?.otherWindowCount)&&data.otherWindowCount>0?data.otherWindowCount:null;
         retry(data?.status==='other-windows'
-          ? 'Close other Who Goes First? tabs and installed windows, then try Apply update again. Your saved players will stay.'
+          ? `Update paused — ${count?`${count} other ${count===1?'window or tab is':'windows or tabs are'}`:'another window or tab is'} still open. Close other Who Goes First? tabs and installed windows, then choose Retry update. Your saved players and settings will stay.`
           : 'The update could not be applied. Close all app windows and reopen to finish updating.');
       };
-      try{registration.waiting.postMessage({type:'APPLY_UPDATE'},[channel.port2]);}
+      try{worker.postMessage({type:'APPLY_UPDATE'},[channel.port2]);}
       catch{retry('The update is no longer waiting. Close all app windows and reopen to finish updating.');}
     });
     registration.addEventListener('updatefound',()=>{

@@ -105,6 +105,31 @@ try{
   assert.equal(await op.locator('#window-drag-strip').evaluate(node=>getComputedStyle(node).getPropertyValue('app-region')),'drag');
   await op.locator('#settings-open').click();
   assert.ok(await op.locator('#settings-dialog').evaluate(node=>node.getBoundingClientRect().top>=40));
+  async function checkModalChrome(id){
+    const modalStrip=op.locator(`#${id} .modal-window-drag-strip`);
+    assert.deepEqual(await modalStrip.boundingBox(),{x:90,y:0,width:500,height:40});
+    assert.equal(await modalStrip.evaluate(node=>getComputedStyle(node).getPropertyValue('app-region')),'drag');
+    assert.ok(await op.evaluate(id=>{
+      const hit=document.elementFromPoint(320,20);
+      return hit?.matches('.modal-window-drag-strip')&&hit.closest('dialog').id===id;
+    },id),'top-layer drag strip receives the title-region hit, not the backdrop');
+    const bar=await op.locator(`#${id}`).evaluate(node=>{
+      const style=getComputedStyle(node,'::before');return{width:style.width,height:style.height,color:style.backgroundColor,content:style.content};
+    });
+    assert.deepEqual(bar,{width:'640px',height:'40px',color:'rgb(157, 107, 13)',content:'""'});
+    await op.mouse.click(320,20);
+    assert.ok(await op.locator(`#${id}`).isVisible(),'title-region click must not dismiss the modal');
+  }
+  await checkModalChrome('settings-dialog');
+  await op.locator('#settings-dialog').evaluate(node=>{node.scrollTop=node.scrollHeight;});
+  await checkModalChrome('settings-dialog');
+  await op.locator('#sound-credits').click();
+  await checkModalChrome('credits-dialog');
+  await op.keyboard.press('Escape');
+  await checkModalChrome('settings-dialog');
+  await op.keyboard.press('Escape');
+  await op.locator('#manage-top').click();
+  await checkModalChrome('players-dialog');
   await op.keyboard.press('Escape');
   await op.evaluate(()=>{navigator.windowControlsOverlay.visible=false;navigator.windowControlsOverlay.dispatchEvent(new Event('geometrychange'));});
   await op.locator('#window-drag-strip').waitFor({state:'hidden'});
@@ -114,6 +139,7 @@ try{
   await overlay.close();
   assert.ok(await page.locator('#window-drag-strip').isHidden());
   pass('overlay geometry reserves the OS titlebar, leaves controls usable, reacts to toggle/resize, and falls back without the API');
+  pass('solid gold titlebar has no duplicate title; scrolled and nested dialogs retain their own drag surface without dismissal');
   for(const failure of ['geometry','listener']){
     const broken=await browser.newContext();
     await broken.addInitScript(failure=>{
@@ -147,7 +173,7 @@ try{
   await blocked.close();
 
   const manifest=await(await page.request.get(base+'manifest.webmanifest')).json();
-  const paths=[...manifest.icons.map(icon=>[icon.src,Number(icon.sizes.split('x')[0])]),['./icons/who-goes-first-32.png',32],['./icons/who-goes-first-apple-180.png',180]];
+  const paths=[...manifest.icons.map(icon=>[icon.src,Number(icon.sizes.split('x')[0])]),['./icons/who-goes-first-large-32.png',32],['./icons/who-goes-first-large-apple-180.png',180]];
   for(const[path,size]of paths){
     const response=await page.request.get(new URL(path,base).href);
     assert.equal(response.status(),200);assert.match(response.headers()['content-type'],/image\/png/);
@@ -166,7 +192,59 @@ try{
     for(const[r,g,b]of info.corners)assert.ok(r>g&&g>b&&r<255,'all corners retain gold, without white/transparent rounding');
   }
   assert.ok(manifest.icons.some(icon=>icon.purpose==='maskable'));
-  assert.equal(await page.locator('link[rel=apple-touch-icon]').getAttribute('href'),'./icons/who-goes-first-apple-180.png');
+  const enlarged=await readFile(resolve(root,'icons/who-goes-first-large-maskable-512.png'));
+  const original=await readFile(resolve(root,'icons/who-goes-first-maskable-512.png'));
+  const footprint=await page.evaluate(async sources=>{
+    const results=[];
+    for(const encoded of sources){
+      const image=new Image();image.src=`data:image/png;base64,${encoded}`;await image.decode();
+      const c=document.createElement('canvas');c.width=image.width;c.height=image.height;
+      const ctx=c.getContext('2d');ctx.drawImage(image,0,0);
+      const p=ctx.getImageData(0,0,c.width,c.height).data,seen=new Uint8Array(c.width*c.height),words=[];
+      const dark=i=>p[i*4]<150&&p[i*4+1]<90&&p[i*4+2]<60&&p[i*4]-p[i*4+1]>20;
+      for(let i=0;i<seen.length;i++){
+        if(seen[i]||!dark(i))continue;
+        const queue=[i];seen[i]=1;
+        for(let j=0;j<queue.length;j++){
+          const k=queue[j],x=k%c.width,y=Math.floor(k/c.width);
+          for(const n of [x>0?k-1:-1,x<c.width-1?k+1:-1,y>0?k-c.width:-1,y<c.height-1?k+c.width:-1]){
+            if(n>=0&&!seen[n]&&dark(n)){seen[n]=1;queue.push(n);}
+          }
+        }
+        if(queue.length>1500)words.push(queue);
+      }
+      const points=words.flat();
+      let left=c.width,right=0,top=c.height,bottom=0,radius=0;
+      for(const i of points){
+        left=Math.min(left,i%c.width);right=Math.max(right,i%c.width);
+        top=Math.min(top,Math.floor(i/c.width));bottom=Math.max(bottom,Math.floor(i/c.width));
+        radius=Math.max(radius,Math.hypot(i%c.width-c.width/2,Math.floor(i/c.width)-c.height/2));
+      }
+      results.push({outlineGroups:words.length,width:right-left,height:bottom-top,radius});
+    }
+    return results;
+  },[original.toString('base64'),enlarged.toString('base64')]);
+  // At 512px two neighbouring source-word outlines touch in both versions.
+  // Preserve that topology; source generation separately requires three words.
+  assert.equal(footprint[1].outlineGroups,footprint[0].outlineGroups);
+  assert.ok(footprint[1].width/footprint[0].width>=1.19,'essential lettering is at least 19% larger, not a filename-only icon change');
+  assert.ok(footprint[1].height/footprint[0].height>=1.19,'all three lines expand together without losing the top/bottom words');
+  assert.ok(footprint[1].radius<512*.4,'all three word outlines remain inside the circular mask safe zone');
+  const comparison=await page.evaluate(async sources=>{
+    const canvas=document.createElement('canvas');canvas.width=900;canvas.height=600;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#f3ead8';ctx.fillRect(0,0,900,600);
+    ctx.fillStyle='#49321c';ctx.font='bold 24px sans-serif';
+    for(let i=0;i<sources.length;i++){
+      const image=new Image();image.src=`data:image/png;base64,${sources[i]}`;await image.decode();
+      const x=50+i*450;ctx.fillText(i?'Larger lettering':'Previous icon',x,40);
+      ctx.drawImage(image,x,60,350,350);ctx.drawImage(image,x,450,96,96);
+    }
+    return canvas.toDataURL('image/png').split(',')[1];
+  },[original.toString('base64'),enlarged.toString('base64')]);
+  await writeFile(resolve(root,'test-results/icon-lettering-comparison.png'),Buffer.from(comparison,'base64'));
+  await writeFile(resolve(root,'test-results/icon-footprint.json'),JSON.stringify(footprint,null,2)+'\n');
+  pass('maskable title is measurably larger while every essential word outline stays inside the circular safe zone');
+  assert.equal(await page.locator('link[rel=apple-touch-icon]').getAttribute('href'),'./icons/who-goes-first-large-apple-180.png');
   const cdp=await context.newCDPSession(page);assert.deepEqual((await cdp.send('Page.getInstallabilityErrors')).installabilityErrors,[]);
   pass('new manifest, Apple and browser icons decode at declared square sizes with opaque gold corners and no installability errors');
   await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));});
