@@ -258,10 +258,12 @@ $('spin-button').addEventListener('click', async () => {
   };
   try {
     const selected = pickPlayer(players);
-    const { names, target } = createReel(activePlayers(), selected.id);
+    const reduced = settings.motion === 'reduced' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // More travel lets the wheel hold its opening speed before a later brake,
+    // rather than spending most of the fixed 3.2 seconds in a slow coast.
+    const { names, target } = createReel(activePlayers(), selected.id, reduced || activePlayers().length === 1 ? 6 : 16);
     track.replaceChildren(...names.map(name => reelName(name)));
     track.style.transform = 'translateY(0)';
-    const reduced = settings.motion === 'reduced' || matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Percentages follow the track's responsive height throughout the spin,
     // keeping the same fractional row in view when orientation/size changes.
     const destination = `translateY(-${target / names.length * 100}%)`;

@@ -1,10 +1,11 @@
-// A friction-like coast followed by a short assisted settle. Position and
-// velocity are continuous, monotone, and reach an exact zero-speed landing.
+// Hold a fast cruise, then brake decisively into a short assisted settle.
+// Position and velocity are continuous, monotone, and land at zero speed.
+// Normal spins use extra reel turns to sustain the fast cruise for longer.
 const phases = [
-  {time:0, position:0, velocity:3.8},
-  {time:.16, position:.46, velocity:1.6},
-  {time:.72, position:.94, velocity:.45},
-  {time:.90, position:.991, velocity:.16},
+  {time:0, position:0, velocity:1.6},
+  {time:.42, position:.672, velocity:1.6},
+  {time:.78, position:.9852, velocity:.14},
+  {time:.90, position:.9964, velocity:.064},
   {time:1, position:1, velocity:0}
 ];
 

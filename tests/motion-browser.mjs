@@ -19,15 +19,22 @@ try{
   await page.locator('#reel-track').evaluate(track=>{track.getAnimations()[0].pause();});
   const opening=await page.locator('#reel-track').evaluate(track=>{
     const animation=track.getAnimations()[0];
-    animation.currentTime=160;
-    const current=new DOMMatrix(getComputedStyle(track).transform).m42;
+    const positions=[0,160,640,1280,2240].map(time=>{
+      animation.currentTime=time;
+      return new DOMMatrix(getComputedStyle(track).transform).m42;
+    });
     animation.currentTime=3200;
     const final=new DOMMatrix(getComputedStyle(track).transform).m42;
-    return {fraction:current/final,duration:animation.effect.getTiming().duration};
+    const rowHeight=track.firstElementChild.getBoundingClientRect().height;
+    return {positions,final,rowHeight,duration:animation.effect.getTiming().duration};
   });
-  assert.ok(opening.fraction>.17,'Opening 160ms must cover over 17% of the reel travel');
+  const speed=Math.abs(opening.positions[1]-opening.positions[0])/160;
+  assert.ok(Math.abs((opening.positions[2]-opening.positions[1])/480)/speed>.99);
+  assert.ok(Math.abs((opening.positions[3]-opening.positions[2])/640)/speed>.99);
+  assert.ok(Math.abs((opening.positions[4]-opening.positions[3])/960)/speed<.75);
+  assert.ok(Math.abs(opening.positions[1])/opening.rowHeight>7,'Opening keeps at least seven rows of travel in 160ms');
   assert.equal(opening.duration,3200);
-  pass('opening burst covers over 17% of reel travel in 160ms while keeping the 3.2s duration');
+  pass('reel holds opening speed through 1.28s, then brakes more steeply within the same 3.2s');
   for(const time of [400,1600,2400,2700,2880,3040,3168,3190]){
     await page.locator('#reel-track').evaluate((track,time)=>{track.getAnimations()[0].currentTime=time;},time);
     // Two animation frames let the model-driven directional filter catch up.
@@ -42,7 +49,7 @@ try{
       return {blurX:blur[0],blurY:blur[1],transform:new DOMMatrix(getComputedStyle(track).transform).m42,closest};
     });
     assert.ok(state.blurX<state.blurY/10);
-    if(frames.length)assert.ok(state.blurY<frames.at(-1).blurY);
+    if(frames.length)assert.ok(state.blurY<=frames.at(-1).blurY+.001);
     frames.push({time,...state});
     if([400,2700,3040,3190].includes(time)){
       await page.locator('.original-screen').screenshot({path:resolve(root,`test-results/motion-${time}.png`)});
