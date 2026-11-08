@@ -1,20 +1,22 @@
-import { STORAGE_KEY, MAX_PLAYERS, cleanName, defaultPlayers, decodePlayers, encodePlayers, pickPlayer, createReel } from './logic.js';
+import { STORAGE_KEY, MAX_PLAYERS, cleanName, loadPlayerState, gamePlayers, decodePlayers, encodePlayers, pickPlayer, createReel, createFlickReel } from './logic.js';
 import { createWinnerSound } from './audio.js';
 import { reelKeyframes, motionBlur } from './motion.js';
 import { SETTINGS_KEY, defaultSettings, decodeSettings, encodeSettings } from './settings.js';
-import { initializeInstallGuide } from './install.js';
+import { initializeInstallGuide, runningAsApp } from './install.js';
+import {attachReelGesture} from './gestures.js';
 
 const $ = id => document.getElementById(id);
-let players;
+let players=[],samplesAllowed=true,appWindow=runningAsApp(),unreadableRoster=false;
 let storageWarning = '';
 try {
   const saved = localStorage.getItem(STORAGE_KEY);
-  players = saved === null ? defaultPlayers() : decodePlayers(saved);
+  ({players,samplesAllowed}=loadPlayerState(saved));
 } catch {
-  players = defaultPlayers();
-  storageWarning = 'Saved players could not be loaded. Showing the original demo crew.';
+  unreadableRoster=true;
+  storageWarning = 'Saved players could not be loaded. They have not been changed. Add or import a crew to replace them.';
 }
 let spinning = false;
+let dragging = false;
 let applyingUpdate = false;
 let winner = null;
 let deleted = null;
@@ -31,13 +33,13 @@ const track = $('reel-track');
 const winnerSound = createWinnerSound({
   onStatus({ loaded, message, error }) {
     $('audio-status').textContent = message;
-    $('test-sound').disabled = !loaded || spinning;
+    $('test-sound').disabled = !loaded || spinning || dragging || applyingUpdate;
     $('sound-error').textContent = error ? 'Sound unavailable — open Sound credits for details.' : '';
     $('sound-error').hidden = !error;
   },
   onSpinStatus({loaded,message,error}) {
     $('wheel-status').textContent = message + (error ? ` (${error})` : '');
-    $('test-wheel').disabled = !loaded || spinning;
+    $('test-wheel').disabled = !loaded || spinning || dragging || applyingUpdate;
   }
 });
 winnerSound.configure(settings);
@@ -47,7 +49,9 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', () => winnerSound.cancel());
 
 function persist() {
-  try { localStorage.setItem(STORAGE_KEY, encodePlayers(players)); }
+  samplesAllowed=false;
+  unreadableRoster=false;
+  try { localStorage.setItem(STORAGE_KEY, encodePlayers(players));storageWarning=''; }
   catch {
     storageWarning = 'Browser storage is unavailable. Changes last only until you close this page.';
     $('saved-note').textContent = storageWarning;
@@ -57,7 +61,20 @@ function persist() {
   }
 }
 
-function activePlayers() { return players.filter(player => player.active); }
+function activePlayers() { return gamePlayers(players,{samplesAllowed,appWindow}); }
+function usingSamples() { return !players.length&&samplesAllowed&&!appWindow; }
+function allowRosterReplacement(){
+  if(!unreadableRoster)return true;
+  return confirm('Your saved player list could not be read. Replace it with a new crew? The unreadable saved list will be overwritten.');
+}
+function appWindowChanged(){
+  if(spinning||dragging)return;
+  const next=runningAsApp();
+  if(next===appWindow)return;
+  appWindow=next;winner=null;
+  renderSummary();renderRestingReel();
+}
+for(const mode of ['standalone','minimal-ui','window-controls-overlay'])matchMedia(`(display-mode: ${mode})`).addEventListener('change',appWindowChanged);
 function initials(name) { return Array.from(name.trim().split(/\s+/).map(word => Array.from(word)[0]).slice(0, 2)).join('').toUpperCase(); }
 function reelName(name, selected = false) {
   const item = document.createElement('div');
@@ -99,15 +116,16 @@ function renderSummary() {
     empty.textContent = 'The table’s a little quiet. Add a player or switch someone in to get started.';
     $('table-list').append(empty);
   }
-  $('spin-button').disabled = !active.length || spinning || applyingUpdate;
-  for (const id of ['settings-open','sound-credits']) $(id).disabled = spinning || applyingUpdate;
-  $('apply-update').disabled = spinning || applyingUpdate;
-  $('test-sound').disabled = spinning || $('test-sound').dataset.loaded !== 'true';
-  $('test-wheel').disabled = spinning || $('test-wheel').dataset.loaded !== 'true';
-  $('spin-label').textContent = spinning ? 'Picking a player…' : 'Who goes first?';
+  $('spin-button').disabled = !active.length || spinning || dragging || applyingUpdate;
+  for (const id of ['settings-open','sound-credits']) $(id).disabled = spinning || dragging || applyingUpdate;
+  $('apply-update').disabled = spinning || dragging || applyingUpdate;
+  $('test-sound').disabled = spinning || dragging || applyingUpdate || $('test-sound').dataset.loaded !== 'true';
+  $('test-wheel').disabled = spinning || dragging || applyingUpdate || $('test-wheel').dataset.loaded !== 'true';
+  $('spin-label').textContent = spinning ? 'Picking a player…' : usingSamples()?'Try a sample spin':'Who goes first?';
   $('odds').textContent = active.length > 1 ? `${active.length} players. Equal chances. No hard feelings.` : active.length === 1 ? 'One player in. A very good chance of winning.' : 'No players in yet. Manage players to fill the table.';
   $('ready-text').textContent = spinning ? 'PICKING A PLAYER' : active.length ? 'READY TO ROLL' : 'WAITING FOR PLAYERS';
-  $('saved-note').textContent = storageWarning || '↳ Your crew stays saved on this device.';
+  $('saved-note').textContent = storageWarning || (usingSamples()?'The reel is trying sample names. Add your own below—no sample players need removing.':'Your crew stays saved on this device.');
+  $('export-players').disabled=unreadableRoster;
   $('storage-warning').textContent = storageWarning;
   const previewStorage = document.documentElement.dataset.preview === 'true' && storageWarning.includes('could not be loaded');
   $('storage-warning').hidden = !storageWarning || previewStorage;
@@ -125,7 +143,11 @@ function updateAfterEdit() {
   renderRosterCount();
 }
 
-function renderRosterCount() { $('roster-count').textContent = `${activePlayers().length} in · ${players.length} saved`; }
+function renderRosterCount() {
+  $('roster-count').textContent = `${players.filter(player=>player.active).length} in · ${players.length} saved`;
+  $('select-all').disabled=!players.length;
+  $('select-none').disabled=!players.length;
+}
 
 function renderRoster() {
   $('players-list').replaceChildren();
@@ -201,10 +223,11 @@ function renderRoster() {
 }
 
 function openPlayers() {
-  if (spinning) return;
+  if (spinning||dragging||applyingUpdate) return;
   $('form-error').textContent = '';
   renderRoster();
   dialog.showModal();
+  if(!players.length)$('new-name').focus();
 }
 $('manage-top').addEventListener('click', openPlayers);
 document.querySelectorAll('.close-dialog').forEach(button => button.addEventListener('click', () => dialog.close()));
@@ -216,6 +239,7 @@ $('add-form').addEventListener('submit', event => {
   const name = cleanName($('new-name').value);
   if (!name) { $('form-error').textContent = 'A name needs more than spaces.'; return; }
   if (players.length >= MAX_PLAYERS) { $('form-error').textContent = 'This table seats 100. Remove someone before adding another player.'; return; }
+  if(!allowRosterReplacement())return;
   players.push({ id: crypto.randomUUID(), name, active: true });
   $('new-name').value = '';
   $('form-error').textContent = '';
@@ -225,13 +249,14 @@ $('add-form').addEventListener('submit', event => {
 });
 for (const [id, active] of [['select-all', true], ['select-none', false]]) {
   $(id).addEventListener('click', () => {
+    if(!players.length)return;
     players.forEach(player => { player.active = active; });
     updateAfterEdit();
     renderRoster();
   });
 }
 $('undo-delete').addEventListener('click', () => {
-  if (spinning || !deleted || players.length >= MAX_PLAYERS) return;
+  if (spinning || dragging || applyingUpdate || !deleted || players.length >= MAX_PLAYERS) return;
   players.splice(Math.min(deleted.index, players.length), 0, deleted.player);
   deleted = null;
   clearTimeout(toastTimer);
@@ -240,8 +265,8 @@ $('undo-delete').addEventListener('click', () => {
   renderRoster();
 });
 
-$('spin-button').addEventListener('click', async () => {
-  if (spinning || applyingUpdate || !activePlayers().length) return;
+async function startSpin(flick=null) {
+  if (spinning || dragging || applyingUpdate || !activePlayers().length) return;
   const audioUnlocked = winnerSound.prepare();
   spinning = true;
   winner = null;
@@ -258,19 +283,24 @@ $('spin-button').addEventListener('click', async () => {
     $('reel-blur').setAttribute('stdDeviation',`${amount*scale*.035} ${amount*scale}`);
   };
   try {
-    const selected = pickPlayer(players);
+    // Snapshot the same effective roster for selection and animation. Samples
+    // never enter saved player storage or become editable crew records.
+    const crew=activePlayers();
+    const selected = pickPlayer(crew);
     const reduced = settings.motion === 'reduced' || matchMedia('(prefers-reduced-motion: reduce)').matches;
     // More travel lets the wheel hold its opening speed before a later brake,
     // rather than spending most of the fixed 3.2 seconds in a slow coast.
-    const { names, target } = createReel(activePlayers(), selected.id, reduced || activePlayers().length === 1 ? 6 : 16);
+    const { names, target, start=0 } = flick
+      ? createFlickReel(crew,selected.id,flick.position,flick.direction,reduced||crew.length===1?6:16)
+      : createReel(crew, selected.id, reduced || crew.length === 1 ? 6 : 16);
     track.replaceChildren(...names.map(name => reelName(name)));
-    track.style.transform = 'translateY(0)';
+    track.style.transform = `translateY(-${start/names.length*100}%)`;
     // Percentages follow the track's responsive height throughout the spin,
     // keeping the same fractional row in view when orientation/size changes.
     const destination = `translateY(-${target / names.length * 100}%)`;
-    const duration = reduced || activePlayers().length === 1 ? 100 : 3200;
+    const duration = reduced || crew.length === 1 ? 100 : 3200;
     const shortSpin = duration <= 100;
-    const animation = track.animate(reelKeyframes(target,names.length,shortSpin), { duration, easing:'linear', fill:'forwards' });
+    const animation = track.animate(reelKeyframes(target,names.length,shortSpin,start), { duration, easing:'linear', fill:'forwards' });
     winnerSound.startSpin(animation,duration,audioUnlocked);
     if (!shortSpin) {
       // Blur follows animation time even while paused or resized.
@@ -280,10 +310,10 @@ $('spin-button').addEventListener('click', async () => {
           return;
         }
         const elapsed = Number(animation.currentTime) || 0;
-        setBlur(motionBlur(elapsed/duration,target,duration));
+        setBlur(motionBlur(elapsed/duration,Math.abs(target-start),duration));
         cueFrame = requestAnimationFrame(checkCue);
       };
-      setBlur(motionBlur(0,target,duration));
+      setBlur(motionBlur(0,Math.abs(target-start),duration));
       cueFrame = requestAnimationFrame(checkCue);
     }
     await animation.finished;
@@ -305,28 +335,52 @@ $('spin-button').addEventListener('click', async () => {
     setBlur(0);
     winnerSound.stopSpin();
     spinning = false;
+    appWindowChanged();
     $('machine').classList.remove('is-spinning');
     $('manage-top').disabled = false;
     $('undo-delete').disabled = false;
     renderSummary();
   }
+}
+$('spin-button').addEventListener('click',()=>{void startSpin();});
+attachReelGesture({
+  surface:$('reel-gesture'),
+  canStart:()=>!spinning&&!applyingUpdate&&!document.querySelector('dialog[open]')&&activePlayers().length>0,
+  startPose(){
+    const crew=activePlayers(),position=Math.max(0,crew.findIndex(player=>player.id===winner?.id));
+    return {position,rowHeight:track.firstElementChild?.getBoundingClientRect().height};
+  },
+  drawPose(position){
+    const crew=activePlayers(),whole=Math.floor(position),fraction=position-whole;
+    const mod=index=>((index%crew.length)+crew.length)%crew.length;
+    track.replaceChildren(...Array.from({length:7},(_,i)=>reelName(crew[mod(whole+i-3)].name)));
+    track.style.transform=`translateY(-${(3+fraction)/7*100}%)`;
+  },
+  restore(){appWindowChanged();renderRestingReel();},
+  onLock(value){
+    dragging=value;
+    $('manage-top').disabled=value||spinning||applyingUpdate;
+    $('undo-delete').disabled=value||spinning||applyingUpdate;
+    renderSummary();
+  },
+  onRelease(pose){void startSpin(pose);}
 });
 
 $('sound-credits').addEventListener('click', () => $('credits-dialog').showModal());
 $('close-credits').addEventListener('click', () => $('credits-dialog').close());
 winnerSound.ready.then(loaded => {
   $('test-sound').dataset.loaded = String(loaded);
-  $('test-sound').disabled = !loaded || spinning;
+  $('test-sound').disabled = !loaded || spinning || dragging || applyingUpdate;
 });
 winnerSound.spinReady.then(loaded => {
   $('test-wheel').dataset.loaded = String(loaded);
-  $('test-wheel').disabled = !loaded || spinning;
+  $('test-wheel').disabled = !loaded || spinning || dragging || applyingUpdate;
 });
 $('test-sound').addEventListener('click', () => {
-  if (!spinning) void winnerSound.test();
+  if (!spinning&&!dragging&&!applyingUpdate) void winnerSound.test();
 });
 $('test-wheel').addEventListener('click', () => {
-  if (!spinning) void winnerSound.testSpin();
+  if (!spinning&&!dragging&&!applyingUpdate) void winnerSound.testSpin();
 });
 $('credits-dialog').addEventListener('close', () => {
   if (!spinning) winnerSound.cancel();
@@ -347,7 +401,7 @@ function saveSettings() {
   renderSettings();
 }
 for (const id of ['sound-enabled','sound-volume','reduce-motion']) $(id).addEventListener('input',saveSettings);
-$('settings-open').addEventListener('click',()=>{if(!spinning){renderSettings();$('settings-dialog').showModal();}});
+$('settings-open').addEventListener('click',()=>{if(!spinning&&!dragging&&!applyingUpdate){renderSettings();$('settings-dialog').showModal();}});
 for (const id of ['settings-close','settings-done']) $(id).addEventListener('click',()=>$('settings-dialog').close());
 document.querySelectorAll('dialog').forEach(modal=>{
   modal.addEventListener('click',event=>{
@@ -357,6 +411,10 @@ document.querySelectorAll('dialog').forEach(modal=>{
   });
 });
 $('export-players').addEventListener('click',()=>{
+  if(unreadableRoster){
+    $('backup-status').textContent='Your saved crew could not be read. No empty backup was exported.';
+    return;
+  }
   try {
     const blob=new Blob([encodePlayers(players)+'\n'],{type:'application/json'});
     const url=URL.createObjectURL(blob);
@@ -404,6 +462,16 @@ $('import-dialog').addEventListener('close',()=>{
 });
 renderSettings();
 initializeInstallGuide();
+// Reveal the tabletop/beveled device only when the actual portrait stage leaves
+// enough horizontal room. This also handles short/split windows, not orientation.
+const artifactStage=document.querySelector('.original-screen');
+function updateArtifactFrame(){
+  const extra=document.documentElement.clientWidth-artifactStage.getBoundingClientRect().width;
+  document.documentElement.dataset.artifactFramed=String(extra>=48);
+}
+new ResizeObserver(updateArtifactFrame).observe(artifactStage);
+window.addEventListener('resize',updateArtifactFrame);
+updateArtifactFrame();
 if(document.documentElement.dataset.preview==='true'){
   $('install-context').textContent='This is the embedded preview. Install the app from its published HTTPS website; installation and offline caching do not run inside Canvas.';
   $('offline-detail').textContent='Preview mode: installation and offline caching are available on the published website.';
@@ -438,7 +506,7 @@ if ('serviceWorker' in navigator && document.documentElement.dataset.preview !==
     window.addEventListener('online',checkForUpdate);
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForUpdate();});
     $('apply-update').addEventListener('click',()=>{
-      if(spinning||applyingUpdate||!registration.waiting)return;
+      if(spinning||dragging||applyingUpdate||!registration.waiting)return;
       applyingUpdate=true;
       renderSummary();
       $('manage-top').disabled=true;

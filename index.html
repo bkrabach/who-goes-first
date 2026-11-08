@@ -18,6 +18,7 @@
   <script type="module" src="./app.js"></script>
 </head>
 <body>
+  <div id="window-drag-strip" class="window-drag-strip" aria-hidden="true" hidden></div>
   <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
     <defs><filter id="reel-motion-blur" x="-20%" y="-25%" width="140%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur id="reel-blur" stdDeviation="0 0"/></filter></defs>
   </svg>
@@ -30,6 +31,7 @@
           </button>
           <button class="art-control players-control" id="manage-top" aria-label="Players"><img src="./assets/players-label.png" alt="" aria-hidden="true"><span class="sr-only">Players · <span id="top-count">6</span> playing</span></button>
           <div class="machine" id="machine">
+            <div id="reel-gesture" class="reel-gesture" aria-hidden="true"></div>
             <div class="reel-shell">
               <div class="reel-window" id="reel-window" aria-hidden="true"><div class="reel-track" id="reel-track"></div></div>
             </div>

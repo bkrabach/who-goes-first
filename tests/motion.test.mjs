@@ -63,3 +63,12 @@ test('motion keyframes align to the exact chosen winner and use responsive perce
   assert.equal(frames.at(-1).offset,1);
   assert.equal(reelKeyframes(38,41,true).length,2);
 });
+test('flick keyframes retain a fractional drag pose and travel in either direction',()=>{
+  for(const[start,target]of [[3.25,100],[110.75,3]]){
+    const frames=reelKeyframes(target,120,false,start);
+    assert.equal(frames[0].transform,`translateY(-${start/120*100}%)`);
+    assert.equal(frames.at(-1).transform,`translateY(-${target/120*100}%)`);
+    assert.equal(frames.length,161);
+    assert.equal(reelKeyframes(target,120,true,start).length,2);
+  }
+});

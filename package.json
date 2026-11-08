@@ -7,7 +7,7 @@
   "scripts": {
     "start": "npm run build && node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:e2e": "npm run build && npm run preview && node tests/preview-artwork.mjs && node tests/browser.mjs && node tests/upgrade.mjs && node tests/artwork.mjs && node tests/audio-browser.mjs && node tests/audio-sandbox.mjs && node tests/motion-browser.mjs && node tests/release-browser.mjs && node tests/install-browser.mjs",
+    "test:e2e": "npm run build && npm run preview && node tests/preview-artwork.mjs && node tests/sample-crew-browser.mjs && node tests/gesture-browser.mjs && node tests/browser.mjs && node tests/upgrade.mjs && node tests/artwork.mjs && node tests/audio-browser.mjs && node tests/audio-sandbox.mjs && node tests/motion-browser.mjs && node tests/release-browser.mjs && node tests/install-browser.mjs",
     "preview": "node scripts/preview.mjs",
     "build": "node scripts/build.mjs"
   },

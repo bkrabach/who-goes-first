@@ -69,6 +69,15 @@ Optional source provenance checks accept YAY_SOURCE and WHEEL_SOURCE pointing to
 the original user-provided recordings. Those recordings are not bundled in full.
 
 DATA / ACCESSIBILITY
+Sample players are ephemeral browser-only demonstrations, not a saved roster.
+Players always edits the user's actual crew and focuses name entry when empty.
+Installed-app windows do not use the demonstration crew. Existing custom lists,
+all-inactive lists, deliberate saved-empty lists, and imported lists are preserved.
+Only the exact unmarked original nine-name/default-toggle roster is recognized
+as old demo data. A historic explicit save identical to those defaults cannot
+be distinguished; no storage is changed automatically by this recognition.
+Unreadable roster storage is retained; creating a replacement requires explicit
+confirmation, and no empty recovery backup is exported.
 Players and settings are local only. Export players from Settings before changing
 devices or clearing site data. Import replaces the current list only after explicit
 confirmation. No account is needed and there is no cross-device synchronization.
@@ -88,6 +97,21 @@ user-triggered download. Do not grant Full Disk Access or clear site data as a
 workaround. Source reference: https://web.dev/learn/pwa/windows/
 Approved default: 3.2-second coast/assisted settle with progressive directional
 blur, natural-speed wheel collage during spinning, and one Yay at the actual stop.
+Drag the parchment reel with a finger or primary mouse button, then release to
+spin in that direction. Names follow the drag and wrap without blank gaps; taps,
+horizontal gestures, canceled pointers, and returning to the starting point do
+not draw a winner. The normal spin button and keyboard path remain available.
+Gesture direction never changes any player's chance of being picked.
+The portrait gold face is a bounded artifact on an illustrated wooden workbench
+when there is at least 48px of extra horizontal space. Otherwise it remains
+edge-to-edge with no device trim. A non-repeating transparent layer adds large
+stains, scratches and worn patches below the unchanged reel and controls.
+The wood and patina are bundled in both offline releases and the Canvas preview.
+Supporting installed desktop browsers may blend artwork behind native window
+controls using Window Controls Overlay. A transparent, reserved strip remains
+draggable; content and dialogs stay below it. This is not desktop transparency.
+Unsupported browsers retain their normal title bar. Native OS dragging and window
+controls require device testing; geometry tests do not establish that integration.
 
 RELEASE BOUNDARIES
 Publication is configured for the repository and website above. Consult the

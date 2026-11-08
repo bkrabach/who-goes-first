@@ -19,8 +19,11 @@ try{
   const app=page.frameLocator('#preview');
   await app.locator('.selected').waitFor();
   const frame=page.frames().find(frame=>frame.parentFrame());
+  await frame.evaluate(()=>{document.documentElement.dataset.artifactFramed='true';});
   const layers=[
-    ['body','shell-gold.png',1024,1024],
+    ['body','workbench-illustrated.png',1024,1024],
+    ['.original-screen','shell-gold.png',1024,1024],
+    ['.original-screen::before','device-patina.png',1280,1840],
     ['.machine','reel-redrawn.png',1170,1064],
     ['#settings-open','shell-gold.png',1024,1024],
     ['#manage-top','shell-gold.png',1024,1024],
@@ -30,7 +33,8 @@ try{
   for(const[selector,file,width,height]of layers){
     const expected=(await readFile(resolve(root,'assets',file))).toString('base64');
     const evidence=await frame.evaluate(async({selector,expected})=>{
-      const background=getComputedStyle(document.querySelector(selector)).backgroundImage;
+      const [target,pseudo]=selector.split('::');
+      const background=getComputedStyle(document.querySelector(target),pseudo?`::${pseudo}`:null).backgroundImage;
       const url=background.match(/url\(["']?([^"')]+)["']?\)/)?.[1];
       if(!url)return {background};
       async function pixels(src){
@@ -48,7 +52,7 @@ try{
     assert.equal(evidence.height,height,`${selector}: expected full-resolution artwork`);
     assert.equal(evidence.different,0,`${selector}: preview must preserve exact artwork pixels`);
   }
-  checks.push('all six artwork layers resolve, decode, and match full-resolution source pixels in the no-network sandbox');
+  checks.push('all artwork, wood and transparent patina layers resolve, decode, and match source pixels in the no-network sandbox');
   await app.locator('#reel-track').evaluate(node=>{node.style.visibility='hidden';});
   const machine=app.locator('.machine');
   const visible=await machine.screenshot();

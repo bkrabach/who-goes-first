@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createStaticServer } from '../scripts/serve.mjs';
+import {seedSavedCrew} from './crew-fixture.mjs';
 
 // Point PLAYWRIGHT_MODULE at an existing Playwright/Playwright-core installation.
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -19,13 +20,14 @@ const pass = name => { checks.push(name); console.log(`PASS ${name}`); };
 const key = 'who-goes-first:players:v1';
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1100 }, reducedMotion: 'reduce' });
+  await seedSavedCrew(context);
   const page = await context.newPage();
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(base);
   await page.waitForFunction(() => document.querySelector('#top-count').textContent === '6');
   assert.equal(await page.locator('#table-list li').count(), 6);
   await page.screenshot({ path: resolve(out, 'desktop.png'), fullPage: true });
-  pass('fresh browser shows the six enabled original players');
+  pass('existing saved crew shows its six enabled players');
   await page.locator('#spin-button').click();
   await page.waitForFunction(() => document.querySelector('#result').textContent.endsWith('goes first!'));
   const name = (await page.locator('#result').textContent()).replace(' goes first!', '');
@@ -130,6 +132,7 @@ try {
   pass('corrupt storage recovers to demo data with an explicit warning');
 
   await page.locator('#manage-top').click();
+  page.once('dialog',dialog=>dialog.accept());
   await page.locator('#new-name').fill('<img src=x onerror=alert(1)>');
   await page.getByRole('button', { name: 'Add player', exact: true }).click();
   assert.equal(await page.locator('#table-list img').count(), 0);
@@ -161,7 +164,8 @@ try {
   blockedPage.on('pageerror', error => errors.push(error.message));
   await blockedPage.goto(base);
   await blockedPage.locator('#manage-top').click();
-  await blockedPage.getByRole('switch', { name:'Kevin Flynn is playing' }).click();
+  await blockedPage.locator('#new-name').fill('Blocked Storage Guest');
+  await blockedPage.getByRole('button',{name:'Add player',exact:true}).click();
   assert.match(await blockedPage.locator('#saved-note').textContent(), /storage is unavailable/);
   await blockedPage.keyboard.press('Escape');
   await blockedPage.locator('#spin-button').click();

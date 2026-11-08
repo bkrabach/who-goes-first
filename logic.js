@@ -2,9 +2,25 @@ export const STORAGE_KEY = 'who-goes-first:players:v1';
 export const MAX_PLAYERS = 100;
 export const MAX_NAME = 40;
 
-const defaults = ['Kevin Flynn', 'Andrew Wiggin', 'Frodo Baggins', 'Inigo Montoyo', 'Rick Deckard', 'Dade Murphy', 'Mazer Rackham', 'Richard Riddick', 'Thomas Anderson'];
+// Keep this fingerprint fixed when the demo naming direction changes.
+const legacyNames = ['Kevin Flynn', 'Andrew Wiggin', 'Frodo Baggins', 'Inigo Montoyo', 'Rick Deckard', 'Dade Murphy', 'Mazer Rackham', 'Richard Riddick', 'Thomas Anderson'];
+const defaults = ['Pip Pebblewhistle','Juniper Kettlefern','Milo Thistletop','Tessa Bramblewick','Nori Copperfern','Otis Cloudskip'];
 export function defaultPlayers() {
-  return defaults.map((name, i) => ({ id: `original-${i}`, name, active: i < 6 }));
+  return defaults.map((name, i) => ({ id: `sample-${i}`, name, active: true }));
+}
+// Samples are display-only. Never write them as a user's crew on first launch.
+export function loadPlayerState(raw) {
+  if(raw===null)return {players:[],samplesAllowed:true};
+  const data=JSON.parse(raw);
+  const decoded=decodePlayers(raw);
+  const legacy=legacyNames.map((name,i)=>({id:`original-${i}`,name,active:i<6}));
+  const untouchedLegacy=data.kind===undefined&&data.players.length===legacy.length&&data.players.every((player,i)=>
+    player.id===legacy[i].id&&player.name===legacy[i].name&&player.active===legacy[i].active);
+  return untouchedLegacy?{players:[],samplesAllowed:true}:{players:decoded,samplesAllowed:false};
+}
+export function gamePlayers(players,{samplesAllowed=false,appWindow=false}={}) {
+  if(players.length)return players.filter(player=>player.active);
+  return samplesAllowed&&!appWindow?defaultPlayers().filter(player=>player.active):[];
 }
 
 export function cleanName(value) {
@@ -23,7 +39,7 @@ export function decodePlayers(raw) {
 }
 
 export function encodePlayers(players) {
-  return JSON.stringify({ version: 1, players });
+  return JSON.stringify({ version: 1, kind:'crew', players });
 }
 
 // Reject the incomplete tail of the uint32 range, avoiding modulo bias.
@@ -49,4 +65,18 @@ export function createReel(players, winnerId, turns = 6) {
   const offset = ((winner - target) % players.length + players.length) % players.length;
   const names = Array.from({ length: target + 3 }, (_, i) => players[(i + offset) % players.length].name);
   return { names, target };
+}
+export function createFlickReel(players,winnerId,position,direction,turns=16){
+  const count=players.length,winner=players.findIndex(player=>player.id===winnerId);
+  if(!count||winner<0||!Number.isFinite(position)||![-1,1].includes(direction))throw new Error('Invalid flick reel');
+  const distance=Math.max(12,count*turns);
+  const end=direction>0
+    ? Math.ceil((position+distance-winner)/count)*count+winner
+    : Math.floor((position-distance-winner)/count)*count+winner;
+  const first=Math.floor(Math.min(position,end))-3,last=Math.ceil(Math.max(position,end))+3;
+  const mod=index=>((index%count)+count)%count;
+  return {
+    names:Array.from({length:last-first+1},(_,i)=>players[mod(first+i)].name),
+    start:position-first,target:end-first
+  };
 }

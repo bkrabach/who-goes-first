@@ -4,6 +4,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {tmpdir} from 'node:os';
 import {createStaticServer} from '../scripts/serve.mjs';
+import {seedSavedCrew} from './crew-fixture.mjs';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const root=fileURLToPath(new URL('../',import.meta.url));
 const server=createStaticServer(resolve(root,'dist'));
@@ -15,6 +16,7 @@ const pass=check=>{checks.push(check);console.log(`PASS ${check}`);};
 let subServer,temporary;
 try{
   const context=await browser.newContext({reducedMotion:'reduce',acceptDownloads:true});
+  await seedSavedCrew(context);
   const page=await context.newPage();
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(base);
@@ -100,6 +102,18 @@ try{
     assert.ok(machine.y+machine.h<=spin.y+1,`${label} spin button stays below reel`);
     const stage=await page.locator('.original-screen').boundingBox();
     assert.ok(Math.abs(stage.width / stage.height - 640/920)<.001,`${label} preserves vertical composition`);
+    const framed=width-stage.width>=48;
+    assert.equal(await page.locator('html').getAttribute('data-artifact-framed'),String(framed),`${label} edge trim only when there is surrounding space`);
+    const surface=await page.locator('.original-screen').evaluate(node=>({
+      shadow:getComputedStyle(node).boxShadow,
+      gold:getComputedStyle(node).backgroundImage,
+      patina:getComputedStyle(node,'::before').backgroundImage,
+      surrounding:getComputedStyle(document.body).backgroundImage
+    }));
+    assert.match(surface.gold,/shell-gold/);
+    assert.match(surface.patina,/device-patina/);
+    assert.equal(surface.shadow!=='none',framed);
+    assert.match(surface.surrounding,framed?/workbench-illustrated/:/shell-gold/);
     assert.ok(await page.evaluate(()=>[...document.querySelectorAll('.art-control img')].every(img=>img.complete&&img.naturalWidth>0)),`${label} missing original lettering`);
     await page.screenshot({path:resolve(root,`test-results/release-${label}.png`),fullPage:true});
     await page.locator('#manage-top').click();

@@ -4,10 +4,11 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 const root = fileURLToPath(new URL('../', import.meta.url));
-const files = ['index.html', 'styles.css', 'logic.js', 'audio.js', 'motion.js', 'settings.js', 'install.js', 'app.js'];
+const files = ['index.html', 'styles.css', 'logic.js', 'audio.js', 'motion.js', 'gestures.js', 'settings.js', 'install.js', 'app.js'];
 const sources = Object.fromEntries(await Promise.all(files.map(async file => [file, await readFile(resolve(root, file), 'utf8')])));
 const logic = sources['logic.js'].replace(/^export /gm, '');
 const motion = sources['motion.js'].replace(/^export /gm, '');
+const gestures = sources['gestures.js'].replace(/^export /gm, '');
 const settings = sources['settings.js'].replace(/^export /gm, '');
 const install = sources['install.js'].replace(/^export /gm, '');
 const clip = await readFile(resolve(root, 'assets/yay-third.wav'));
@@ -16,7 +17,7 @@ const audio = sources['audio.js'].replace(/^export /gm, '')
   .replace('./assets/yay-third.wav', `data:audio/wav;base64,${clip.toString('base64')}`)
   .replace('./assets/wheel-spin.wav', `data:audio/wav;base64,${wheel.toString('base64')}`);
 const app = sources['app.js'].replace(/^import .*?;\n/gm, '');
-const artFiles = ['assets/shell-gold.png','assets/reel-redrawn.png','assets/players-label.png','assets/spin-label.png','assets/parchment-redrawn.png','icons/who-goes-first-192.png'];
+const artFiles = ['assets/shell-gold.png','assets/workbench-illustrated.png','assets/device-patina.png','assets/reel-redrawn.png','assets/players-label.png','assets/spin-label.png','assets/parchment-redrawn.png','icons/who-goes-first-192.png'];
 const art = Object.fromEntries(await Promise.all(artFiles.map(async file => [file, await readFile(resolve(root, file))])));
 let css = sources['styles.css'];
 const embeddedArt=[];
@@ -42,7 +43,7 @@ const bootArt=`(() => {
   }
   // Keep URLs for this document's lifetime, including back/forward-cache return.
 })();`;
-const code = `${logic}\n${motion}\n${settings}\n${install}\n${audio}\n${app}`;
+const code = `${logic}\n${motion}\n${gestures}\n${settings}\n${install}\n${audio}\n${app}`;
 let preview = sources['index.html']
   .replace('<html lang="en">', '<html lang="en" data-preview="true">')
   // Canvas supplies its own no-network CSP; the standalone app's script-src

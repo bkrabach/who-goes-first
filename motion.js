@@ -24,12 +24,12 @@ export function sampleMotion(progress) {
   return {position,velocity:Math.max(0,velocity)};
 }
 
-export function reelKeyframes(target, length, reduced = false) {
+export function reelKeyframes(target, length, reduced = false, start = 0) {
   const samples = reduced ? 1 : 160;
   return Array.from({length:samples+1},(_,i) => {
     const offset = i/samples;
     const position = reduced ? offset : sampleMotion(offset).position;
-    return {offset,transform:`translateY(-${target/length*100*position}%)`};
+    return {offset,transform:`translateY(-${(start+(target-start)*position)/length*100}%)`};
   });
 }
 

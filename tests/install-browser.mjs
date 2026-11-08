@@ -89,6 +89,48 @@ try{
   assert.ok(await fullPage.locator('#fit-portrait').isHidden());
   await fullscreen.close();
   pass('fullscreen browser use is not mistaken for an installed app');
+  const overlay=await browser.newContext({viewport:{width:640,height:1016}});
+  await overlay.addInitScript(()=>{
+    const chrome=new EventTarget();
+    chrome.visible=true;
+    chrome.rect={x:90,y:0,width:500,height:40};
+    chrome.getTitlebarAreaRect=()=>chrome.rect;
+    Object.defineProperty(navigator,'windowControlsOverlay',{value:chrome});
+  });
+  const op=await overlay.newPage();op.on('pageerror',error=>errors.push(error.message));await op.goto(base);
+  await op.locator('#window-drag-strip').waitFor({state:'visible'});
+  const strip=await op.locator('#window-drag-strip').boundingBox();
+  assert.deepEqual(strip,{x:90,y:0,width:500,height:40});
+  assert.ok(await op.locator('#settings-open').evaluate(node=>node.getBoundingClientRect().top>=40));
+  assert.equal(await op.locator('#window-drag-strip').evaluate(node=>getComputedStyle(node).getPropertyValue('app-region')),'drag');
+  await op.locator('#settings-open').click();
+  assert.ok(await op.locator('#settings-dialog').evaluate(node=>node.getBoundingClientRect().top>=40));
+  await op.keyboard.press('Escape');
+  await op.evaluate(()=>{navigator.windowControlsOverlay.visible=false;navigator.windowControlsOverlay.dispatchEvent(new Event('geometrychange'));});
+  await op.locator('#window-drag-strip').waitFor({state:'hidden'});
+  await op.evaluate(()=>{navigator.windowControlsOverlay.visible=true;navigator.windowControlsOverlay.rect={x:0,y:0,width:500,height:32};navigator.windowControlsOverlay.dispatchEvent(new Event('geometrychange'));});
+  await op.waitForFunction(()=>document.querySelector('#window-drag-strip').getBoundingClientRect().height===32);
+  assert.equal((await op.locator('#window-drag-strip').boundingBox()).x,0);
+  await overlay.close();
+  assert.ok(await page.locator('#window-drag-strip').isHidden());
+  pass('overlay geometry reserves the OS titlebar, leaves controls usable, reacts to toggle/resize, and falls back without the API');
+  for(const failure of ['geometry','listener']){
+    const broken=await browser.newContext();
+    await broken.addInitScript(failure=>{
+      Object.defineProperty(navigator,'windowControlsOverlay',{value:{
+        visible:true,
+        getTitlebarAreaRect(){throw new Error('Optional native geometry unavailable');},
+        addEventListener(){if(failure==='listener')throw new Error('Optional native listener unavailable');}
+      }});
+    },failure);
+    const bp=await broken.newPage();bp.on('pageerror',error=>errors.push(error.message));await bp.goto(base);
+    await bp.locator('.selected').waitFor();
+    assert.ok(await bp.locator('#window-drag-strip').isHidden());
+    await bp.locator('#spin-button').click();
+    await bp.waitForFunction(()=>document.querySelector('#result').textContent.endsWith('goes first!'));
+    await broken.close();
+  }
+  pass('optional native overlay errors fall back without breaking game initialization or selection');
 
   const blocked=await browser.newContext({viewport:{width:320,height:568},reducedMotion:'reduce'});
   await blocked.addInitScript(()=>{

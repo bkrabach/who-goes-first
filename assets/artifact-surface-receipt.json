@@ -1,0 +1,27 @@
+{
+  "sources": [
+    {
+      "output": "assets/workbench-illustrated.png",
+      "sha256": "8cbd95d426b252923670d8a4f020f231a2430a6ef76bfe7f5a3d2287746a07fd",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "output": "assets/device-patina.png",
+      "sha256": "725b5d9c37e015f6149b0f7aedbbb76f3a0239d75335570acfa6de0b3bc8094d",
+      "width": 1280,
+      "height": 1840
+    }
+  ],
+  "wood": {
+    "generationRequests": [
+      "wgf-workbench-painted-style-v1",
+      "wgf-workbench-painted-seam-repair-v2"
+    ],
+    "nativeResolution": 1024,
+    "description": "Illustrated hand-painted seamless wood, same pixels as approved working master; not an upscale."
+  },
+  "patina": {
+    "description": "Non-repeating straight-alpha stains, rubbed areas and scratches, below controls and machine. Original artwork retained."
+  }
+}

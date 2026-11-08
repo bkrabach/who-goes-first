@@ -9,6 +9,7 @@
   --rust: #884515;
   --serif: Georgia, 'Times New Roman', serif;
   --sans: Arial, Helvetica, sans-serif;
+  --window-titlebar-height: 0px;
   font-family: var(--sans);
   color: var(--ink);
   background: #9d6b0d;
@@ -22,9 +23,26 @@ body {
   min-height: 100svh;
   display: grid;
   align-content: center;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: calc(env(safe-area-inset-top) + var(--window-titlebar-height)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   background: #a67611 url('./assets/shell-gold.png') center / 768px 768px repeat;
   overscroll-behavior-y: none;
+}
+html[data-artifact-framed=true] body {
+  background: #61401f url('./assets/workbench-illustrated.png') center / 1024px 1024px repeat;
+}
+.window-drag-strip {
+  position: fixed; z-index: 20;
+  left: env(titlebar-area-x, var(--window-titlebar-x));
+  top: env(titlebar-area-y, var(--window-titlebar-y));
+  width: env(titlebar-area-width, var(--window-titlebar-width));
+  height: env(titlebar-area-height, var(--window-titlebar-strip-height));
+  background: transparent; user-select: none;
+  app-region: drag; -webkit-app-region: drag;
+}
+button, input, a, dialog { app-region: no-drag; -webkit-app-region: no-drag; }
+html[data-window-overlay=true] dialog {
+  margin-top: calc(var(--window-titlebar-height) + 12px);
+  max-height: calc(100dvh - var(--window-titlebar-height) - 32px);
 }
 button, input { font: inherit; }
 button, a, input { -webkit-tap-highlight-color: transparent; }
@@ -43,13 +61,35 @@ button[hidden], [hidden] { display: none !important; }
 }
 .original-screen {
   position: relative;
-  width: min(100%, 640px, calc((100svh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 640 / 920));
+  width: min(100%, 640px, calc((100svh - 16px - var(--window-titlebar-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 640 / 920));
   min-width: min(100%,280px);
   margin: 0 auto;
   aspect-ratio: 640 / 920;
   container-type: inline-size;
   isolation: isolate;
-  background: transparent;
+  background: #a67611 url('./assets/shell-gold.png') center / 768px 768px repeat;
+}
+.original-screen::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: url('./assets/device-patina.png') center / 100% 100% no-repeat;
+  border-radius: inherit; pointer-events: none;
+}
+html:not([data-artifact-framed=true]) .original-screen::before {
+  /* The face has no physical edge on narrow screens. Blend wear into the
+     continuous surrounding gold instead of exposing the overlay's crop. */
+  mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent);
+}
+html[data-artifact-framed=true] .original-screen {
+  border-radius: 22px;
+  box-shadow: inset 0 2px 1px #ffe8ab,inset 0 -3px 3px #70410c,
+    0 0 0 3px #ac7730,0 0 0 7px #573614,0 0 0 10px #b28748,
+    0 9px 0 10px #3b2817,0 20px 26px 8px #21150db3;
+}
+html[data-artifact-framed=true] .original-screen::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  box-shadow: inset 2px 2px 5px #ffdc7970,inset -2px -3px 5px #57300a99;
+  pointer-events: none;
 }
 .art-control {
   position: absolute;
@@ -115,6 +155,9 @@ button[hidden], [hidden] { display: none !important; }
   pointer-events: none;
 }
 .reel-shell { position: absolute; inset: 12.781955% 4.273504% 12.781955% 3.418803%; }
+.reel-gesture { position: absolute; z-index: 3; inset: 12.781955% 4.273504% 12.781955% 3.418803%; pointer-events: auto; cursor: grab; touch-action: pan-x pinch-zoom; user-select: none; -webkit-user-select: none; }
+.reel-gesture.is-dragging { cursor: grabbing; }
+.machine.is-spinning .reel-gesture { cursor: default; }
 .reel-window {
   position: absolute;
   inset: 0 2%;

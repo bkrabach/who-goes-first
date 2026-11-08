@@ -2,6 +2,37 @@ export const INSTALL_TIP_KEY='who-goes-first:install-tip-dismissed:v1';
 export function runningAsApp(){
   return navigator.standalone===true||['standalone','minimal-ui','window-controls-overlay'].some(mode=>matchMedia(`(display-mode: ${mode})`).matches);
 }
+export function initializeWindowChrome(){
+  const strip=document.getElementById('window-drag-strip');
+  const overlay=navigator.windowControlsOverlay;
+  if(!strip||!overlay||document.documentElement.dataset.preview==='true'||window.top!==window.self)return;
+  let frame;
+  function reset(){
+    strip.hidden=true;
+    document.documentElement.dataset.windowOverlay='false';
+    for(const name of ['x','y','width','height','strip-height'])document.documentElement.style.setProperty(`--window-titlebar-${name}`,'0px');
+  }
+  function update(){
+    try{
+    const visible=overlay.visible===true,rect=visible?overlay.getTitlebarAreaRect():null;
+    const safe=visible&&['x','y','height','width'].every(key=>Number.isFinite(rect?.[key]))&&rect.height>0&&rect.width>0;
+    strip.hidden=!safe;
+    document.documentElement.dataset.windowOverlay=String(safe);
+    for(const[name,value]of Object.entries({
+      '--window-titlebar-x':safe?rect.x:0,'--window-titlebar-y':safe?rect.y:0,
+      '--window-titlebar-width':safe?rect.width:0,'--window-titlebar-height':safe?rect.y+rect.height:0,
+      '--window-titlebar-strip-height':safe?rect.height:0
+    }))document.documentElement.style.setProperty(name,`${value}px`);
+    }catch{reset();}
+  }
+  try{
+    overlay.addEventListener('geometrychange',()=>{
+      cancelAnimationFrame(frame);
+      frame=requestAnimationFrame(update);
+    });
+    update();
+  }catch{reset();}
+}
 
 export function installGuide({userAgent='',platform='',maxTouchPoints=0}={}){
   if(/iPhone|iPad|iPod/i.test(userAgent)||(/Mac/i.test(platform)&&maxTouchPoints>1)){
@@ -46,6 +77,7 @@ export function installGuide({userAgent='',platform='',maxTouchPoints=0}={}){
 }
 
 export function initializeInstallGuide(){
+  initializeWindowChrome();
   const byId=id=>document.getElementById(id);
   const panel=byId('install-tip'),dialog=byId('install-dialog');
   const preview=document.documentElement.dataset.preview==='true';
