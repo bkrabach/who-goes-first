@@ -173,6 +173,7 @@ try{
   await blocked.close();
 
   const manifest=await(await page.request.get(base+'manifest.webmanifest')).json();
+  assert.equal(manifest.orientation,'portrait');
   const paths=[...manifest.icons.map(icon=>[icon.src,Number(icon.sizes.split('x')[0])]),['./icons/who-goes-first-large-32.png',32],['./icons/who-goes-first-large-apple-180.png',180]];
   for(const[path,size]of paths){
     const response=await page.request.get(new URL(path,base).href);

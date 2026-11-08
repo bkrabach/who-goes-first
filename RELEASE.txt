@@ -87,6 +87,20 @@ Players and settings are local only. Export players from Settings before changin
 devices or clearing site data. Import replaces the current list only after explicit
 confirmation. No account is needed and there is no cross-device synchronization.
 Sound effects can be disabled, volume adjusted, and reduced motion selected.
+Only detected iOS devices show the Silent Mode note and optional Play in Silent
+Mode switch. It is OFF by default, including for older saved preferences.
+Supported browsers can request navigator.audioSession.type='playback' from the
+spin/test gesture. This may interrupt other music; the UI warns about that.
+The previous policy is restored after cues finish or playback is canceled/muted.
+No silent looping media or background playback workaround is used. Older iOS
+browsers without this API show the option disabled with normal unmute guidance.
+The API is feature-detected, not a guarantee of physical speaker audibility.
+Reference: https://bugs.webkit.org/show_bug.cgi?id=237322 (comment 6).
+The manifest requests portrait orientation for supported installed apps.
+Safari/iOS does not reliably support the manifest or JavaScript orientation lock;
+Settings points iPhone users to Control Center's Portrait Orientation Lock.
+Landscape remains usable; the app never forces fullscreen or counter-rotates UI.
+Reference: https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock
 The operating system's reduced-motion preference is always respected.
 The optional browser installation tip is dismissed using a separate local
 preference. Installed app windows and embedded previews do not show it. Settings

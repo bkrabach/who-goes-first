@@ -70,6 +70,8 @@
       <h3 id="sound-heading">Sound &amp; motion</h3>
       <label class="setting-row" for="sound-enabled"><span><strong>Sound effects</strong><small>Wheel spin and the original “Yay.”</small></span><input type="checkbox" id="sound-enabled" role="switch" checked></label>
       <label class="setting-row volume-row" for="sound-volume"><span><strong>Volume</strong><small id="volume-value">100%</small></span><input id="sound-volume" type="range" min="0" max="100" step="5" value="100"></label>
+      <p class="muted" id="silent-mode-help" hidden>On iPhone and iPad, sounds may not play while Silent Mode is on, even with the volume turned up.</p>
+      <label class="setting-row" id="silent-mode-row" for="play-in-silent-mode" hidden><span><strong>Play in Silent Mode</strong><small id="silent-mode-option-help">Try media playback on supported iOS versions. May pause music from other apps. Off by default.</small></span><input type="checkbox" id="play-in-silent-mode" role="switch"></label>
       <label class="setting-row" for="reduce-motion"><span><strong>Reduce motion</strong><small>Skip the long spin and blur. Your device’s reduced-motion setting is always respected.</small></span><input type="checkbox" id="reduce-motion" role="switch"></label>
       <p id="settings-save-status" class="muted" role="status">Saved on this device.</p>
     </section>
@@ -84,6 +86,7 @@
       <button id="apply-update" class="button button-dark" hidden>Apply update</button>
       <button id="fit-portrait" class="button" hidden>Fit portrait window</button>
       <p id="window-size-status" class="muted" role="status"></p>
+      <p class="muted">The installed app requests portrait mode where supported. On iPhone, use Control Center’s Portrait Orientation Lock to prevent rotation.</p>
     </section>
     <section class="settings-section" aria-labelledby="backup-heading">
       <h3 id="backup-heading">Keep your crew</h3>

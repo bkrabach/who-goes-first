@@ -1,4 +1,7 @@
 export const INSTALL_TIP_KEY='who-goes-first:install-tip-dismissed:v1';
+export function isIOSDevice({userAgent='',platform='',maxTouchPoints=0}={}){
+  return /iPhone|iPad|iPod/i.test(userAgent)||(/Mac/i.test(platform)&&maxTouchPoints>1);
+}
 export function runningAsApp(){
   return navigator.standalone===true||['standalone','minimal-ui','window-controls-overlay'].some(mode=>matchMedia(`(display-mode: ${mode})`).matches);
 }
@@ -46,7 +49,7 @@ export function initializeWindowChrome(){
 }
 
 export function installGuide({userAgent='',platform='',maxTouchPoints=0}={}){
-  if(/iPhone|iPad|iPod/i.test(userAgent)||(/Mac/i.test(platform)&&maxTouchPoints>1)){
+  if(isIOSDevice({userAgent,platform,maxTouchPoints})){
     return {title:'Add to your home screen',steps:[
       'Open this page in Safari.',
       'Tap Share, then Add to Home Screen. You may need to scroll down.',

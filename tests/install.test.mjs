@@ -1,6 +1,10 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {installGuide,INSTALL_TIP_KEY} from '../install.js';
+import {installGuide,isIOSDevice,INSTALL_TIP_KEY} from '../install.js';
+test('iOS detection includes touch iPad desktop mode, not desktop Macs or Android',()=>{
+  for(const device of [{userAgent:'iPhone OS 18 Safari'},{userAgent:'iPad Safari'},{userAgent:'iPod'},{userAgent:'Safari',platform:'MacIntel',maxTouchPoints:5}])assert.equal(isIOSDevice(device),true);
+  for(const device of [{},{userAgent:'Android Chrome',maxTouchPoints:5},{userAgent:'Safari',platform:'MacIntel',maxTouchPoints:0},{userAgent:'Chrome',platform:'Win32',maxTouchPoints:10}])assert.equal(isIOSDevice(device),false);
+});
 test('consumer install steps cover iPhone, touch iPad, Android, Safari, Edge and Chrome',()=>{
   const cases=[
     [{userAgent:'iPhone Safari'},/Share/,/Home Screen/],
