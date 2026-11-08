@@ -42,6 +42,9 @@ try{
   await page.locator('#import-keep').click();
   assert.equal(await page.locator('#top-count').textContent(),'6');
   await page.locator('#import-file').setInputFiles({name:'crew.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({version:1,players:[{id:'new',name:'The New Crew',active:true}]}))});
+  await page.waitForFunction(()=>document.querySelector('#import-dialog').open);
+  // Reproduce a preceding dialog's queued close event arriving after reopen.
+  await page.locator('#import-dialog').dispatchEvent('close');
   await page.locator('#import-confirm').click();
   assert.equal(await page.locator('#top-count').textContent(),'1');
   await page.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{broken')});

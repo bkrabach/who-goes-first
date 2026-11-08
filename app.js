@@ -379,7 +379,11 @@ $('import-file').addEventListener('change',async()=>{
     $('backup-status').textContent='That file is not a valid Who Goes First? backup. Your current players were kept.';
   }
 });
-for(const id of ['import-cancel','import-keep']) $(id).addEventListener('click',()=>$('import-dialog').close());
+for(const id of ['import-cancel','import-keep']) $(id).addEventListener('click',()=>{
+  pendingImport=null;
+  $('import-dialog').close();
+});
+$('import-dialog').addEventListener('cancel',()=>{pendingImport=null;});
 $('import-confirm').addEventListener('click',()=>{
   if(!pendingImport || spinning)return;
   players=pendingImport;pendingImport=null;
@@ -391,7 +395,11 @@ $('import-confirm').addEventListener('click',()=>{
   $('backup-status').textContent=`Imported ${players.length} player${players.length===1?'':'s'}.`;
   $('import-dialog').close();
 });
-$('import-dialog').addEventListener('close',()=>{pendingImport=null;});
+$('import-dialog').addEventListener('close',()=>{
+  // A queued close event from the preceding confirmation can arrive after the
+  // next file has reopened this dialog. It must not erase that new import.
+  if(!$('import-dialog').open)pendingImport=null;
+});
 renderSettings();
 document.querySelectorAll('.close-install').forEach(button => button.addEventListener('click', () => $('install-dialog').close()));
 window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; $('install-button').hidden = false; });
