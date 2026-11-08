@@ -80,3 +80,19 @@ export function createFlickReel(players,winnerId,position,direction,turns=16){
     start:position-first,target:end-first
   };
 }
+
+// Resolve from a hypothetical unframed face, not a previously framed element:
+// the framing decision stays stable as the window changes shape.
+export function artifactLayout(width,height){
+  const ratio=640/920;
+  const available=Math.max(0,width),usable=Math.max(0,height);
+  const floor=Math.min(available,available<320?248:280);
+  const unframed=Math.min(available,640,Math.max(floor,(usable-16)*ratio));
+  const framed=available-unframed>=48||usable-unframed/ratio>=64;
+  const gutter=framed?Math.max(0,Math.min(20,(available-floor)/2)):0;
+  const blockSpace=framed?32:0;
+  const stageWidth=framed
+    ?Math.min(available-2*gutter,640,Math.max(floor,(usable-2*blockSpace)*ratio))
+    :unframed;
+  return {framed,width:stageWidth,height:stageWidth/ratio,gutter,blockSpace};
+}

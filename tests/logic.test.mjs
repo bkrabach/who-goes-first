@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultPlayers, cleanName, decodePlayers, encodePlayers, randomIndex, pickPlayer, createReel, createFlickReel, loadPlayerState, gamePlayers } from '../logic.js';
+import { defaultPlayers, cleanName, decodePlayers, encodePlayers, randomIndex, pickPlayer, createReel, createFlickReel, loadPlayerState, gamePlayers, artifactLayout } from '../logic.js';
 
 test('sample crew contains six original playful adventurer names', () => {
   const players = defaultPlayers();
@@ -9,6 +9,25 @@ test('sample crew contains six original playful adventurer names', () => {
   players[0].name = 'Changed';
   assert.equal(defaultPlayers()[0].name, 'Pip Pebblewhistle');
   assert.ok(defaultPlayers().every(player=>player.id.startsWith('sample-')));
+});
+test('artifact sizing caps both axes and frames spare height as well as spare width',()=>{
+  for(const width of [280,300,320,390,520,640,680,1000,1920,3840]){
+    for(const height of [300,390,568,780,920,1000,1600,2400]){
+      const layout=artifactLayout(width,height);
+      assert.ok(layout.width<=640&&layout.height<=920+.0001);
+      assert.ok(layout.width+layout.gutter*2<=width+.0001);
+      assert.ok(Math.abs(layout.width/layout.height-640/920)<.00001);
+      assert.ok(layout.width>=Math.min(width,width<320?248:280));
+      const fullWidth=Math.min(width,640,Math.max(Math.min(width,width<320?248:280),(height-16)*640/920));
+      assert.equal(layout.framed,width-fullWidth>=48||height-fullWidth*920/640>=64);
+      assert.equal(layout.blockSpace,layout.framed?32:0);
+    }
+  }
+  assert.equal(artifactLayout(390,1600).framed,true);
+  assert.equal(artifactLayout(640,1600).framed,true);
+  assert.equal(artifactLayout(1920,1000).framed,true);
+  assert.equal(artifactLayout(390,570).framed,false);
+  assert.equal(artifactLayout(680,1000).width,640);
 });
 test('round trips a saved crew, including a deliberately empty crew', () => {
   assert.deepEqual(decodePlayers(encodePlayers(defaultPlayers())), defaultPlayers());

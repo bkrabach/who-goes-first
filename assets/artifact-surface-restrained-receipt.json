@@ -1,0 +1,31 @@
+{
+  "sources": [
+    {
+      "output": "assets/workbench-illustrated.png",
+      "sha256": "8cbd95d426b252923670d8a4f020f231a2430a6ef76bfe7f5a3d2287746a07fd",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "output": "assets/device-patina-restrained.png",
+      "sha256": "f9fed52a133c815d95b620203465be5824d7666b51713d3c6c8628aff08c6815",
+      "width": 1280,
+      "height": 1840
+    }
+  ],
+  "wood": {
+    "generationRequests": [
+      "wgf-workbench-painted-style-v1",
+      "wgf-workbench-painted-seam-repair-v2"
+    ],
+    "nativeResolution": 1024,
+    "description": "Illustrated hand-painted seamless wood, same pixels as approved working master; not an upscale."
+  },
+  "patina": {
+    "description": "Restrained original-reference rust flecks and broken fine abrasions, no smoky stains or broad perimeter shading. Non-repeating straight-alpha layer below controls and reel.",
+    "referenceSha256": "3392cfd24fc1f016336e8df682c4e4bce340bed9b2b464c64b3a4f2128fb7334",
+    "method": "Actual small rust shapes extracted from exposed original reel/button gap, plus seeded sparse microflecks.",
+    "fullyTransparentPercent": 99.7465,
+    "maxAlpha": 116
+  }
+}

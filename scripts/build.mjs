@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const dist = resolve(root, 'dist');
 const stage = await mkdtemp(resolve(root,'.dist-stage-'));
 const files = ['index.html', 'styles.css', 'app.js', 'logic.js', 'audio.js', 'motion.js', 'gestures.js', 'settings.js', 'install.js', 'manifest.webmanifest', '_headers', 'RELEASE.txt'];
-const assets = ['main-screen.png','gold-texture.png','shell-gold.png','workbench-illustrated.png','device-patina.png','artifact-surface-receipt.json','artwork-receipt.json','machine-frame.png','reel-redrawn.png','parchment-redrawn.png','reel-redraw-receipt.json','players-label.png','spin-label.png','parchment-texture.png','yay-third.wav','yay-third-receipt.json','wheel-spin.wav','wheel-spin-receipt.json','audio-attribution.txt'];
+const assets = ['main-screen.png','gold-texture.png','shell-gold.png','workbench-illustrated.png','device-patina-restrained.png','artifact-surface-restrained-receipt.json','artwork-receipt.json','machine-frame.png','reel-redrawn.png','parchment-redrawn.png','reel-redraw-receipt.json','players-label.png','spin-label.png','parchment-texture.png','yay-third.wav','yay-third-receipt.json','wheel-spin.wav','wheel-spin-receipt.json','audio-attribution.txt'];
 const icons = ['who-goes-first-large-32.png','who-goes-first-large-192.png','who-goes-first-large-512.png','who-goes-first-large-1024.png','who-goes-first-large-maskable-512.png','who-goes-first-large-apple-180.png','icon-large-receipt.json'];
 const hashes = {};
 for (const file of [...files,...assets.map(file=>`assets/${file}`),...icons.map(file=>`icons/${file}`)]) {

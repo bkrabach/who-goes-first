@@ -23,7 +23,7 @@ try{
   const layers=[
     ['body','workbench-illustrated.png',1024,1024],
     ['.original-screen','shell-gold.png',1024,1024],
-    ['.original-screen::before','device-patina.png',1280,1840],
+    ['.original-screen::before','device-patina-restrained.png',1280,1840],
     ['.machine','reel-redrawn.png',1170,1064],
     ['#settings-open','shell-gold.png',1024,1024],
     ['#manage-top','shell-gold.png',1024,1024],

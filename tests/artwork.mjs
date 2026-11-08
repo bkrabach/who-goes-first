@@ -14,7 +14,7 @@ const browser = await chromium.launch({ headless: true });
 const checks = [];
 const pass = check => { checks.push(check); console.log(`PASS ${check}`); };
 try {
-  const context = await browser.newContext({ viewport: { width: 640, height: 1016 }, reducedMotion: 'reduce' });
+  const context = await browser.newContext({ viewport: { width: 680, height: 1000 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   await page.goto(base);
   // Centering can place the artwork on a fractional device pixel; align this

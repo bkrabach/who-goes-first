@@ -20,6 +20,7 @@ export function initializeWindowChrome(){
     strip.hidden=true;
     document.documentElement.dataset.windowOverlay='false';
     for(const name of ['x','y','width','height','strip-height'])document.documentElement.style.setProperty(`--window-titlebar-${name}`,'0px');
+    window.dispatchEvent(new Event('window-chrome-change'));
   }
   function update(){
     try{
@@ -32,6 +33,7 @@ export function initializeWindowChrome(){
       '--window-titlebar-width':safe?rect.width:0,'--window-titlebar-height':safe?rect.y+rect.height:0,
       '--window-titlebar-strip-height':safe?rect.height:0
     }))document.documentElement.style.setProperty(name,`${value}px`);
+    window.dispatchEvent(new Event('window-chrome-change'));
     }catch{reset();}
   }
   try{

@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {tmpdir} from 'node:os';
 import {createStaticServer} from '../scripts/serve.mjs';
 import {seedSavedCrew} from './crew-fixture.mjs';
+import {artifactLayout} from '../logic.js';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const root=fileURLToPath(new URL('../',import.meta.url));
 const server=createStaticServer(resolve(root,'dist'));
@@ -77,7 +78,7 @@ try{
   // Return demo data for visual captures and boundary checks.
   await page.evaluate(()=>{localStorage.removeItem('who-goes-first:players:v1');localStorage.removeItem('who-goes-first:settings:v1');});
   await page.reload();
-  for(const [width,height,label]of [[320,568,'small-phone'],[390,844,'phone'],[520,780,'split-pane'],[699,520,'stacked-boundary'],[700,520,'wide-boundary'],[768,1024,'tablet'],[844,390,'landscape'],[960,500,'wide-short'],[1440,1000,'desktop']]){
+  for(const [width,height,label]of [[320,568,'small-phone'],[390,570,'close-fit-phone'],[390,844,'phone'],[520,780,'split-pane'],[640,1016,'width-cap'],[640,1600,'capped-tall'],[390,1600,'narrow-tall'],[699,520,'stacked-boundary'],[700,520,'wide-boundary'],[768,1024,'tablet'],[844,390,'landscape'],[960,500,'wide-short'],[1440,1000,'desktop'],[1920,1600,'large-desktop']]){
     await page.setViewportSize({width,height});
     await page.locator('#settings-open').scrollIntoViewIfNeeded();
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${label} main overflow`);
@@ -102,8 +103,12 @@ try{
     assert.ok(machine.y+machine.h<=spin.y+1,`${label} spin button stays below reel`);
     const stage=await page.locator('.original-screen').boundingBox();
     assert.ok(Math.abs(stage.width / stage.height - 640/920)<.001,`${label} preserves vertical composition`);
-    const framed=width-stage.width>=48;
-    assert.equal(await page.locator('html').getAttribute('data-artifact-framed'),String(framed),`${label} edge trim only when there is surrounding space`);
+    const expected=artifactLayout(width,height),framed=expected.framed;
+    await page.waitForFunction(framed=>document.documentElement.dataset.artifactFramed===String(framed),framed);
+    assert.ok(Math.abs(stage.width-expected.width)<.1,`${label} bounded stage width`);
+    assert.ok(stage.width<=640.1&&stage.height<=920.1,`${label} width and height maximum`);
+    if(framed)assert.ok(stage.x>=expected.gutter-.1&&stage.x+stage.width<=width-expected.gutter+.1,`${label} room for side trim`);
+    if(framed&&stage.height+64<=height)assert.ok(stage.y>=32-.1&&stage.y+stage.height<=height-32+.1,`${label} room for top/bottom trim`);
     const surface=await page.locator('.original-screen').evaluate(node=>({
       shadow:getComputedStyle(node).boxShadow,
       gold:getComputedStyle(node).backgroundImage,
@@ -111,7 +116,7 @@ try{
       surrounding:getComputedStyle(document.body).backgroundImage
     }));
     assert.match(surface.gold,/shell-gold/);
-    assert.match(surface.patina,/device-patina/);
+    assert.match(surface.patina,/device-patina-restrained/);
     assert.equal(surface.shadow!=='none',framed);
     assert.match(surface.surrounding,framed?/workbench-illustrated/:/shell-gold/);
     assert.ok(await page.evaluate(()=>[...document.querySelectorAll('.art-control img')].every(img=>img.complete&&img.naturalWidth>0)),`${label} missing original lettering`);
@@ -130,6 +135,23 @@ try{
     assert.equal(await page.evaluate(()=>document.activeElement.id),'sound-credits');
     await page.locator('#settings-close').click();
   }
+  for(const width of [248,260,280,300]){
+    await page.setViewportSize({width,height:1000});
+    await page.waitForFunction(width=>{
+      const stage=document.querySelector('.original-screen').getBoundingClientRect();
+      return stage.width<=width&&document.documentElement.dataset.artifactFramed==='true';
+    },width);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}px narrow pane must not overflow`);
+    const stage=await page.locator('.original-screen').boundingBox();
+    assert.ok(stage.x>=0&&stage.x+stage.width<=width+.1,`${width}px centered face`);
+    const shadow=await page.locator('.original-screen').evaluate(node=>getComputedStyle(node).boxShadow);
+    assert.ok(shadow.split(/,(?![^()]*\))/).every(part=>part.includes('inset')),`${width}px trim stays within narrow face`);
+    for(const id of ['#spin-button','#manage-top','#settings-open']){
+      const box=await page.locator(id).boundingBox();
+      assert.ok(box.width>=44&&box.height>=44,`${width}px ${id} remains tappable`);
+    }
+  }
+  pass('248–300px tall panes keep viewport-safe sizing and compact inset borders without horizontal overflow');
   pass('phone, tablet, desktop, and landscape controls stay at least 44px and all themed panels fit without horizontal overflow');
   assert.equal(await page.locator('.app-nav #sound-credits').count(),0);
   assert.equal(await page.locator('.app-nav').count(),0);

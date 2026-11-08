@@ -17,7 +17,7 @@ const audio = sources['audio.js'].replace(/^export /gm, '')
   .replace('./assets/yay-third.wav', `data:audio/wav;base64,${clip.toString('base64')}`)
   .replace('./assets/wheel-spin.wav', `data:audio/wav;base64,${wheel.toString('base64')}`);
 const app = sources['app.js'].replace(/^import .*?;\n/gm, '');
-const artFiles = ['assets/shell-gold.png','assets/workbench-illustrated.png','assets/device-patina.png','assets/reel-redrawn.png','assets/players-label.png','assets/spin-label.png','assets/parchment-redrawn.png','icons/who-goes-first-large-192.png'];
+const artFiles = ['assets/shell-gold.png','assets/workbench-illustrated.png','assets/device-patina-restrained.png','assets/reel-redrawn.png','assets/players-label.png','assets/spin-label.png','assets/parchment-redrawn.png','icons/who-goes-first-large-192.png'];
 const art = Object.fromEntries(await Promise.all(artFiles.map(async file => [file, await readFile(resolve(root, file))])));
 let css = sources['styles.css'];
 const embeddedArt=[];

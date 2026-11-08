@@ -111,10 +111,15 @@ spin in that direction. Names follow the drag and wrap without blank gaps; taps,
 horizontal gestures, canceled pointers, and returning to the starting point do
 not draw a winner. The normal spin button and keyboard path remain available.
 Gesture direction never changes any player's chance of being picked.
-The portrait gold face is a bounded artifact on an illustrated wooden workbench
-when there is at least 48px of extra horizontal space. Otherwise it remains
-edge-to-edge with no device trim. A non-repeating transparent layer adds large
-stains, scratches and worn patches below the unchanged reel and controls.
+The portrait gold face never exceeds 640 CSS pixels wide or 920 high, keeping
+the original 640:920 composition. Framing is decided from an unframed reference:
+48px spare width OR 64px spare height reveals the workbench and border together.
+The framed layout reserves side gutters and top/bottom space for its trim;
+short windows scroll instead of shrinking touch targets. Close-fitting windows
+remain edge-to-edge. Gold no longer fills unrelated tall-window space.
+A restrained, non-repeating overlay uses small rust marks from the original
+screenshot plus sparse microflecks/fine abrasions below the unchanged controls
+and reel. Broad dark patches and smoky perimeter shading have been removed.
 The wood and patina are bundled in both offline releases and the Canvas preview.
 Supporting installed desktop browsers use Window Controls Overlay with one solid
 gold bar spanning the native window controls and no duplicate title drawn by the

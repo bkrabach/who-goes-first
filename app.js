@@ -1,4 +1,4 @@
-import { STORAGE_KEY, MAX_PLAYERS, cleanName, loadPlayerState, gamePlayers, decodePlayers, encodePlayers, pickPlayer, createReel, createFlickReel } from './logic.js';
+import { STORAGE_KEY, MAX_PLAYERS, cleanName, loadPlayerState, gamePlayers, decodePlayers, encodePlayers, pickPlayer, createReel, createFlickReel, artifactLayout } from './logic.js';
 import { createWinnerSound } from './audio.js';
 import { reelKeyframes, motionBlur } from './motion.js';
 import { SETTINGS_KEY, defaultSettings, decodeSettings, encodeSettings } from './settings.js';
@@ -464,15 +464,20 @@ $('import-dialog').addEventListener('close',()=>{
 });
 renderSettings();
 initializeInstallGuide();
-// Reveal the tabletop/beveled device only when the actual portrait stage leaves
-// enough horizontal room. This also handles short/split windows, not orientation.
-const artifactStage=document.querySelector('.original-screen');
+// Spare height matters just as much as spare width: gold never extends into
+// an unbounded tall-window backdrop. Keep the portrait face at most 640×920.
 function updateArtifactFrame(){
-  const extra=document.documentElement.clientWidth-artifactStage.getBoundingClientRect().width;
-  document.documentElement.dataset.artifactFramed=String(extra>=48);
+  const root=document.documentElement,body=getComputedStyle(document.body);
+  const horizontal=parseFloat(body.paddingLeft)+parseFloat(body.paddingRight);
+  const vertical=parseFloat(body.paddingTop)+parseFloat(body.paddingBottom);
+  const layout=artifactLayout(root.clientWidth-horizontal,root.clientHeight-vertical);
+  root.dataset.artifactFramed=String(layout.framed);
+  for(const[name,value]of Object.entries({
+    '--artifact-width':layout.width,'--artifact-gutter':layout.gutter,'--artifact-block-space':layout.blockSpace
+  }))root.style.setProperty(name,`${value}px`);
 }
-new ResizeObserver(updateArtifactFrame).observe(artifactStage);
 window.addEventListener('resize',updateArtifactFrame);
+window.addEventListener('window-chrome-change',updateArtifactFrame);
 updateArtifactFrame();
 if(document.documentElement.dataset.preview==='true'){
   $('install-context').textContent='This is the embedded preview. Install the app from its published HTTPS website; installation and offline caching do not run inside Canvas.';

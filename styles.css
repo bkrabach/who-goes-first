@@ -19,7 +19,7 @@
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  min-width: 280px;
+  min-width: 0;
   min-height: 100svh;
   display: grid;
   align-content: center;
@@ -66,13 +66,17 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 button[hidden], [hidden] { display: none !important; }
 .site {
-  width: min(100%, 640px);
+  width: min(100%, 680px);
   margin: 0 auto;
+}
+.site > main {
+  padding: var(--artifact-block-space, 0px) var(--artifact-gutter, 0px);
 }
 .original-screen {
   position: relative;
-  width: min(100%, 640px, calc((100svh - 16px - var(--window-titlebar-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 640 / 920));
-  min-width: min(100%,280px);
+  width: min(100%, var(--artifact-width, 640px));
+  max-width: 640px;
+  max-height: 920px;
   margin: 0 auto;
   aspect-ratio: 640 / 920;
   container-type: inline-size;
@@ -81,7 +85,7 @@ button[hidden], [hidden] { display: none !important; }
 }
 .original-screen::before {
   content: ''; position: absolute; inset: 0; z-index: -1;
-  background: url('./assets/device-patina.png') center / 100% 100% no-repeat;
+  background: url('./assets/device-patina-restrained.png') center / 100% 100% no-repeat;
   border-radius: inherit; pointer-events: none;
 }
 html:not([data-artifact-framed=true]) .original-screen::before {
@@ -100,6 +104,14 @@ html[data-artifact-framed=true] .original-screen::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit;
   box-shadow: inset 2px 2px 5px #ffdc7970,inset -2px -3px 5px #57300a99;
   pointer-events: none;
+}
+@media (max-width: 319px) {
+  html[data-artifact-framed=true] .original-screen {
+    border-radius: 12px;
+    /* In tiny split panes there is no room for an outward 10px bevel. */
+    box-shadow: inset 0 0 0 2px #b28748,inset 0 0 0 4px #573614,
+      inset 0 5px 3px #ffe8ab80,inset 0 -5px 3px #70410c80;
+  }
 }
 .art-control {
   position: absolute;
