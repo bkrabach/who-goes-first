@@ -14,7 +14,6 @@ export function createWinnerSound({
     return response.arrayBuffer();
   },
   isVisible = () => document.visibilityState === 'visible',
-  getAudioSession = () => undefined,
   onStatus = () => {},
   onSpinStatus = () => {}
 } = {}) {
@@ -31,28 +30,6 @@ export function createWinnerSound({
   let spinEpoch = 0;
   let preparedAt = 0;
   let lastError = '';
-  let playInSilentMode = false;
-  let ownedSession = null;
-  function releaseSession(){
-    const owned=ownedSession;
-    ownedSession=null;
-    if(!owned)return;
-    try{if(owned.session.type==='playback')owned.session.type=owned.previous;}
-    catch{ /* A rejected optional policy must not break the picker. */ }
-  }
-  function releaseIdleSession(){
-    if(!eligible&&!source&&!spinSource)releaseSession();
-  }
-  function claimPlaybackSession(){
-    if(!playInSilentMode||!enabled||volume===0||!isVisible())return;
-    try{
-      const session=getAudioSession();
-      if(!session||typeof session.type!=='string'||session.type==='playback')return;
-      const previous=session.type;
-      session.type='playback';
-      if(session.type==='playback')ownedSession={session,previous};
-    }catch{report('Silent Mode playback was unavailable. Turn Silent Mode off if needed.');}
-  }
   function report(message) {
     try { onStatus({ loaded: !!buffer, contextState: context?.state || 'unavailable', message, error: lastError }); }
     catch { /* Status presentation must not affect the picker. */ }
@@ -111,7 +88,6 @@ export function createWinnerSound({
     eligible = false;
     stop();
     stopSpin();
-    releaseSession();
   }
   function stopSpin() {
     spinEpoch++;
@@ -123,7 +99,6 @@ export function createWinnerSound({
       try { current.disconnect(); } catch { /* Already disconnected. */ }
     }
     try { gain?.disconnect(); } catch { /* Already disconnected. */ }
-    releaseIdleSession();
   }
   function playSpin(offset = 0) {
     if (!enabled || volume === 0 || !spinBuffer || context?.state !== 'running' || !isVisible() || offset >= spinBuffer.duration) return false;
@@ -138,7 +113,6 @@ export function createWinnerSound({
       cue.onended = () => {
         try { cue.disconnect(); gain.disconnect(); } catch { /* No-op. */ }
         if (spinSource === cue) spinSource = spinGain = null;
-        releaseIdleSession();
       };
       spinSource = cue;
       spinGain = gain;
@@ -148,7 +122,6 @@ export function createWinnerSound({
       if (spinSource === cue) spinSource = spinGain = null;
       try { cue?.disconnect(); gain?.disconnect(); } catch { /* No-op. */ }
       reportSpin('Spinner sound could not play.',error?.message || String(error));
-      releaseIdleSession();
       return false;
     }
   }
@@ -177,17 +150,9 @@ export function createWinnerSound({
         return Promise.resolve(false);
       }
       // Called synchronously by the real user gesture, before awaiting animation.
-      // iOS playback policy is opt-in: it can interrupt other music. Merely
-      // loading this page or saving settings must never claim that session.
-      claimPlaybackSession();
       const epoch=spinEpoch;
-      const resumed = Promise.resolve(context.resume()).then(() => {
-        const running=context.state==='running';
-        if(!running&&epoch===spinEpoch)releaseSession();
-        return running;
-      }).catch(error => {
+      const resumed = Promise.resolve(context.resume()).then(() => context.state==='running').catch(error => {
         if(epoch===spinEpoch){
-          releaseSession();
           reportError('The browser blocked sound. Try Test sound.', error);
         }
         return false;
@@ -201,7 +166,6 @@ export function createWinnerSound({
       silent.start();
       return resumed;
     } catch (error) {
-      releaseSession();
       reportError('Sound could not start.', error);
       return Promise.resolve(false);
     }
@@ -209,15 +173,13 @@ export function createWinnerSound({
   function play() {
     const canPlay = eligible;
     eligible = false;
-    if (!canPlay || !enabled || volume === 0 || !isVisible()) {releaseIdleSession();return false;}
+    if (!canPlay || !enabled || volume === 0 || !isVisible()) return false;
     if (!buffer) {
       report(lastError ? `Winner sound is unavailable. (${lastError})` : 'Winner sound is still loading. Try Test sound once it is ready.');
-      releaseIdleSession();
       return false;
     }
     if (context?.state !== 'running') {
       report(`Sound is ${context?.state || 'unavailable'}. Use Test sound to enable playback.`);
-      releaseIdleSession();
       return false;
     }
     let cue;
@@ -229,7 +191,6 @@ export function createWinnerSound({
       cue.onended = () => {
         try { cue.disconnect(); } catch { /* No-op. */ }
         if (source === cue) source = null;
-        releaseIdleSession();
       };
       source = cue;
       cue.start();
@@ -240,7 +201,6 @@ export function createWinnerSound({
       if (source === cue) source = null;
       try { cue?.disconnect(); } catch { /* No-op. */ }
       reportError('Winner sound could not play.', error);
-      releaseIdleSession();
       return false;
     }
   }
@@ -264,10 +224,8 @@ export function createWinnerSound({
     eligible=false;
     return playSpin();
   }
-  function configure({sound = true, volume:percent = 100, playInSilentMode:silentMode = false} = {}) {
+  function configure({sound = true, volume:percent = 100} = {}) {
     enabled = sound;
-    playInSilentMode=silentMode===true;
-    if(!playInSilentMode)releaseSession();
     volume = Math.max(0,Math.min(100,percent))/100;
     if (masterGain) masterGain.gain.value = enabled ? volume : 0;
     if (!enabled || volume === 0) cancel();

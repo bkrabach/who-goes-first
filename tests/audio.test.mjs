@@ -44,7 +44,6 @@ function setup(options = {}) {
     AudioContextClass: options.noContext ? null : FakeContext,
     fetchAudio: options.fetchAudio || (async () => new ArrayBuffer(8)),
     isVisible: () => visible,
-    getAudioSession: options.getAudioSession || (()=>undefined),
     onStatus: status => statuses.push(status)
   });
   return {cue,effects,statuses,nodes,context:() => context,hide:() => {visible=false;}};
@@ -165,70 +164,31 @@ test('muting or zero volume suppresses playback without changing cue timing',asy
   cue.configure({sound:true,volume:50});
   cue.prepare();assert.equal(cue.play(),true);
 });
-test('optional Silent Mode playback is claimed within the gesture and restored after Yay',async()=>{
-  const writes=[];let type='auto';
-  const session={get type(){return type;},set type(value){writes.push(value);type=value;}};
-  const {cue,nodes}=setup({getAudioSession:()=>session});await cue.ready;
-  cue.configure({playInSilentMode:true});assert.deepEqual(writes,[]);
-  await cue.prepare();assert.deepEqual(writes,['playback']);
-  cue.play();assert.equal(session.type,'playback');
-  nodes.find(node=>node.buffer?.duration>.1).onended();
-  assert.deepEqual(writes,['playback','auto']);
-});
-test('default, mute, zero volume and hidden states do not claim a playback session',async()=>{
-  let writes=0;const session={get type(){return 'auto';},set type(value){writes++;}};
-  const {cue,hide}=setup({getAudioSession:()=>session});await cue.ready;
-  await cue.prepare();cue.play();assert.equal(writes,0);
-  for(const settings of [{sound:false,playInSilentMode:true},{volume:0,playInSilentMode:true}]){
-    cue.configure(settings);await cue.prepare();assert.equal(writes,0);
-  }
-  cue.configure({playInSilentMode:true});hide();await cue.prepare();assert.equal(writes,0);
-});
-test('missing/rejected session support fails safely; blocked resume releases the optional policy',async()=>{
-  for(const getAudioSession of [()=>undefined,()=>{throw new Error('Unavailable');},()=>({get type(){return 'auto';},set type(value){throw new Error('Rejected');}})]){
-    const {cue}=setup({getAudioSession});await cue.ready;cue.configure({playInSilentMode:true});
-    assert.equal(await cue.prepare(),true);assert.equal(cue.play(),true);
-  }
-  const session={type:'ambient'},f=setup({getAudioSession:()=>session,rejectResume:true});
-  await f.cue.ready;f.cue.configure({playInSilentMode:true});
-  assert.equal(await f.cue.prepare(),false);assert.equal(session.type,'ambient');assert.equal(f.cue.play(),false);
-});
-test('cancel, mute and opting out restore only this player’s owned session',async()=>{
-  const session={type:'ambient'},f=setup({getAudioSession:()=>session});await f.cue.ready;
-  for(const end of [()=>f.cue.cancel(),()=>f.cue.configure({sound:false,playInSilentMode:true}),()=>f.cue.configure({playInSilentMode:false})]){
-    f.cue.configure({playInSilentMode:true});await f.cue.prepare();assert.equal(session.type,'playback');
-    end();assert.equal(session.type,'ambient');
-  }
-  session.type='playback';f.cue.configure({playInSilentMode:true});await f.cue.prepare();f.cue.cancel();assert.equal(session.type,'playback');
-  session.type='ambient';await f.cue.prepare();session.type='play-and-record';f.cue.cancel();assert.equal(session.type,'play-and-record');
-});
-test('a stale resume rejection cannot release a later spin’s playback session',async()=>{
-  const session={type:'auto'};let rejectFirst,calls=0;
-  const f=setup({getAudioSession:()=>session,resume:context=>{
+test('a stale resume rejection cannot overwrite a later spin’s sound status',async()=>{
+  let rejectFirst,calls=0;
+  const f=setup({resume:context=>{
     if(++calls===1)return new Promise((_resolve,reject)=>{rejectFirst=reject;});
     context.state='running';return Promise.resolve();
   }});
-  await f.cue.ready;f.cue.configure({playInSilentMode:true});
-  const old=f.cue.prepare();await f.cue.prepare();assert.equal(session.type,'playback');
-  rejectFirst(new Error('Old spin failed'));await old;assert.equal(session.type,'playback');
-  f.cue.cancel();assert.equal(session.type,'auto');
+  await f.cue.ready;
+  const old=f.cue.prepare();await f.cue.prepare();
+  rejectFirst(new Error('Old spin failed'));await old;
+  assert.ok(f.statuses.every(status=>!status.message.includes('Old spin failed')));
+  assert.equal(f.cue.play(),true);
 });
 test('a canceled Test sound cannot consume a newer spin’s landing cue',async()=>{
-  const session={type:'auto'};let resolveFirst,calls=0;
-  const f=setup({getAudioSession:()=>session,resume:context=>{
+  let resolveFirst,calls=0;
+  const f=setup({resume:context=>{
     if(++calls===1)return new Promise(resolve=>{resolveFirst=()=>{context.state='running';resolve();};});
     context.state='running';return Promise.resolve();
   }});
-  await f.cue.ready;f.cue.configure({playInSilentMode:true});
+  await f.cue.ready;
   const oldTest=f.cue.test();
   f.cue.cancel();await f.cue.prepare();
   resolveFirst();assert.equal(await oldTest,false);
   assert.equal(f.effects.filter(effect=>effect==='yay').length,0);
-  assert.equal(session.type,'playback');
   assert.equal(f.cue.play(),true);
   assert.equal(f.effects.filter(effect=>effect==='yay').length,1);
-  f.nodes.find(node=>node.buffer?.duration>.1).onended();
-  assert.equal(session.type,'auto');
 });
 test('trimmed WAV is the recorded third phrase with clean zero-valued edges', async () => {
   const bytes = await readFile(new URL('../assets/yay-third.wav',import.meta.url));

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { createWinnerSound } from '../audio.js';
 
-function fixture({slowResume=false,missing='',slowLoad=false,getAudioSession=()=>undefined}={}) {
+function fixture({slowResume=false,missing='',slowLoad=false}={}) {
   const nodes=[];
   let context,resolveResume,resolveWheel;
   let visible=true;
@@ -34,8 +34,7 @@ function fixture({slowResume=false,missing='',slowLoad=false,getAudioSession=()=
       if(wheel&&slowLoad)await new Promise(resolve=>{resolveWheel=resolve;});
       return new Uint8Array([wheel?2:1]);
     },
-    isVisible:()=>visible,
-    getAudioSession
+    isVisible:()=>visible
   });
   return {audio,nodes,context:()=>context,resume:()=>resolveResume(),load:()=>resolveWheel(),hide:()=>{visible=false;}};
 }
@@ -51,21 +50,6 @@ test('wheel and Yay run independently; finishing stops only wheel',async()=>{
   const yay=nodes.find(n=>n.buffer?.duration===.995);
   audio.stopSpin();assert.equal(wheel.stopped,true);assert.equal(yay.stopped,false);
   audio.cancel();assert.equal(yay.stopped,true);
-});
-test('optional playback session lasts through the wheel-to-Yay boundary, then releases',async()=>{
-  const session={type:'auto'},f=fixture({getAudioSession:()=>session});await Promise.all([f.audio.ready,f.audio.spinReady]);
-  f.audio.configure({playInSilentMode:true});
-  f.audio.startSpin(animation(),3200,f.audio.prepare());
-  f.nodes.find(node=>node.buffer?.duration===3.2).onended();
-  assert.equal(session.type,'playback');
-  assert.equal(f.audio.play(),true);f.audio.stopSpin();assert.equal(session.type,'playback');
-  f.nodes.find(node=>node.buffer?.duration===.995).onended();assert.equal(session.type,'auto');
-});
-test('explicit wheel test releases the optional session at its natural end',async()=>{
-  const session={type:'auto'},f=fixture({getAudioSession:()=>session});await f.audio.spinReady;
-  f.audio.configure({playInSilentMode:true});assert.equal(await f.audio.testSpin(),true);
-  assert.equal(session.type,'playback');
-  f.nodes.find(node=>node.buffer?.duration===3.2).onended();assert.equal(session.type,'auto');
 });
 test('short/reduced spins never start wheel',async()=>{
   const {audio,nodes}=fixture();await audio.spinReady;

@@ -32,7 +32,6 @@ let pendingImport = null;
 const dialog = $('players-dialog');
 const track = $('reel-track');
 const winnerSound = createWinnerSound({
-  getAudioSession:()=>isIOSDevice(navigator)?navigator.audioSession:undefined,
   onStatus({ loaded, message, error }) {
     $('audio-status').textContent = message;
     $('test-sound').disabled = !loaded || spinning || dragging || applyingUpdate;
@@ -391,26 +390,18 @@ function renderSettings() {
   $('sound-volume').value = settings.volume;
   $('volume-value').textContent = `${settings.volume}%`;
   $('reduce-motion').checked = settings.motion === 'reduced';
-  $('play-in-silent-mode').checked=settings.playInSilentMode;
   $('settings-save-status').textContent = preferencesWarning || 'Saved on this device.';
   document.documentElement.dataset.reduceMotion = String(settings.motion === 'reduced');
   winnerSound.configure(settings);
 }
 function saveSettings() {
-  settings = {sound:$('sound-enabled').checked,volume:Number($('sound-volume').value),motion:$('reduce-motion').checked?'reduced':'system',playInSilentMode:$('play-in-silent-mode').checked};
+  settings = {sound:$('sound-enabled').checked,volume:Number($('sound-volume').value),motion:$('reduce-motion').checked?'reduced':'system'};
   try {localStorage.setItem(SETTINGS_KEY,encodeSettings(settings));preferencesWarning='';}
   catch {preferencesWarning='Browser storage is unavailable. Preferences apply to this visit only.';}
   renderSettings();
 }
-for (const id of ['sound-enabled','sound-volume','reduce-motion','play-in-silent-mode']) $(id).addEventListener('input',saveSettings);
-if(isIOSDevice(navigator)){
-  $('silent-mode-help').hidden=false;
-  $('silent-mode-row').hidden=false;
-  let supported=false;
-  try{supported=typeof navigator.audioSession?.type==='string';}catch{}
-  $('play-in-silent-mode').disabled=!supported;
-  if(!supported)$('silent-mode-option-help').textContent='Not available in this browser. Turn Silent Mode off to hear game sounds.';
-}
+for (const id of ['sound-enabled','sound-volume','reduce-motion']) $(id).addEventListener('input',saveSettings);
+$('silent-mode-help').hidden=!isIOSDevice(navigator);
 $('settings-open').addEventListener('click',()=>{if(!spinning&&!dragging&&!applyingUpdate){renderSettings();refreshUpdateStatus();$('settings-dialog').showModal();}});
 for (const id of ['settings-close','settings-done']) $(id).addEventListener('click',()=>$('settings-dialog').close());
 document.querySelectorAll('dialog').forEach(modal=>{
