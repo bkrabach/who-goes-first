@@ -17,6 +17,17 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('.reel-name').length===5);
   await page.locator('#spin-button').click();
   await page.locator('#reel-track').evaluate(track=>{track.getAnimations()[0].pause();});
+  const opening=await page.locator('#reel-track').evaluate(track=>{
+    const animation=track.getAnimations()[0];
+    animation.currentTime=160;
+    const current=new DOMMatrix(getComputedStyle(track).transform).m42;
+    animation.currentTime=3200;
+    const final=new DOMMatrix(getComputedStyle(track).transform).m42;
+    return {fraction:current/final,duration:animation.effect.getTiming().duration};
+  });
+  assert.ok(opening.fraction>.17,'Opening 160ms must cover over 17% of the reel travel');
+  assert.equal(opening.duration,3200);
+  pass('opening burst covers over 17% of reel travel in 160ms while keeping the 3.2s duration');
   for(const time of [400,1600,2400,2700,2880,3040,3168,3190]){
     await page.locator('#reel-track').evaluate((track,time)=>{track.getAnimations()[0].currentTime=time;},time);
     // Two animation frames let the model-driven directional filter catch up.

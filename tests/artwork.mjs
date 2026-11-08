@@ -109,13 +109,14 @@ try {
   for (const [width,height] of [[320,568],[390,844],[844,390],[1440,900]]) {
     await page.setViewportSize({width,height});
     const bounds = await page.locator('.original-screen').boundingBox();
-    if(width<700)assert.ok(Math.abs(bounds.width / bounds.height - 640/920) < .001);
+    assert.ok(Math.abs(bounds.width / bounds.height - 640/920) < .001);
     const machine=await page.locator('.machine').boundingBox();
     assert.ok(Math.abs(machine.width/machine.height-585/532)<.001);
-    assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.y + bounds.height <= height);
+    assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= width);
+    if(height>=568)assert.ok(bounds.y + bounds.height <= height);
     assert.ok(await page.locator('#spin-button').isVisible());
   }
-  pass('stacked and wide layouts preserve machine proportions and visible controls');
+  pass('every viewport keeps the original vertical composition; short screens scroll without stretching');
   await context.setOffline(true);
   await page.reload();
   await page.waitForFunction(() => document.querySelectorAll('.reel-name').length === 5);

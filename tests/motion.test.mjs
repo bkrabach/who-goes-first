@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {sampleMotion,reelKeyframes,motionBlur} from '../motion.js';
 test('coast and assisted settle are continuous, monotone, and end at zero speed',()=>{
-  let previous={position:0,velocity:2.5};
+  let previous=sampleMotion(0);
   for(let i=0;i<=10000;i++){
     const state=sampleMotion(i/10000);
     assert.ok(state.position>=previous.position-1e-10);
@@ -12,11 +12,22 @@ test('coast and assisted settle are continuous, monotone, and end at zero speed'
     previous=state;
   }
   assert.deepEqual(sampleMotion(1),{position:1,velocity:0});
-  for(const time of [.72,.9]){
+  for(const time of [.16,.72,.9]){
     const before=sampleMotion(time-1e-7),after=sampleMotion(time+1e-7);
     assert.ok(Math.abs(before.position-after.position)<.000001);
     assert.ok(Math.abs(before.velocity-after.velocity)<.00001);
   }
+});
+test('opening burst starts faster and covers more ground without extending the spin',()=>{
+  assert.equal(sampleMotion(0).velocity,3.8);
+  // The previous coast covered about 12% in 160ms and 34% in 512ms.
+  assert.ok(sampleMotion(.05).position>.17);
+  assert.equal(sampleMotion(.16).position,.46);
+  // Preserve the accepted late coast and assisted-settle anchors.
+  assert.equal(sampleMotion(.72).position,.94);
+  assert.ok(Math.abs(sampleMotion(.72).velocity-.45)<1e-12);
+  assert.equal(sampleMotion(.9).position,.991);
+  assert.ok(Math.abs(sampleMotion(.9).velocity-.16)<1e-12);
 });
 test('last tenth is a brief settle, not a long sub-pixel crawl or overshoot',()=>{
   assert.equal(sampleMotion(.9).position,.991);

@@ -94,6 +94,11 @@ try{
       assert.ok(overlapX<=1||overlapY<=1,`${label} ${a.id} overlaps ${b.id}`);
     }
     assert.ok(Math.abs(geometry[0].w/geometry[0].h-585/532)<.001,`${label} stretched machine`);
+    const [machine,spin,players,settings]=geometry;
+    assert.ok(players.y+players.h<=machine.y+1&&settings.y+settings.h<=machine.y+1,`${label} header stays above reel`);
+    assert.ok(machine.y+machine.h<=spin.y+1,`${label} spin button stays below reel`);
+    const stage=await page.locator('.original-screen').boundingBox();
+    assert.ok(Math.abs(stage.width / stage.height - 640/920)<.001,`${label} preserves vertical composition`);
     assert.ok(await page.evaluate(()=>[...document.querySelectorAll('.art-control img')].every(img=>img.complete&&img.naturalWidth>0)),`${label} missing original lettering`);
     await page.screenshot({path:resolve(root,`test-results/release-${label}.png`),fullPage:true});
     await page.locator('#manage-top').click();

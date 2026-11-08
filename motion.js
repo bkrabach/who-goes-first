@@ -1,7 +1,8 @@
 // A friction-like coast followed by a short assisted settle. Position and
 // velocity are continuous, monotone, and reach an exact zero-speed landing.
 const phases = [
-  {time:0, position:0, velocity:2.5},
+  {time:0, position:0, velocity:3.8},
+  {time:.16, position:.46, velocity:1.6},
   {time:.72, position:.94, velocity:.45},
   {time:.90, position:.991, velocity:.16},
   {time:1, position:1, velocity:0}

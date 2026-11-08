@@ -38,9 +38,8 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 button[hidden], [hidden] { display: none !important; }
 .site {
-  width: min(100%, 1100px);
+  width: min(100%, 640px);
   margin: 0 auto;
-  container: app / inline-size;
 }
 .original-screen {
   position: relative;
@@ -306,29 +305,10 @@ html[data-reduce-motion=true] .reel-window { filter: none; }
   .add-form { margin-top: 16px; }
   .players-list { padding-bottom: 8px; }
 }
-/* Recompose only when the app's available width fits both the original machine
-   and usable controls. A split pane remains stacked even on a wide device. */
-@container app (min-width: 700px) {
-  .original-screen {
-    width: 100%; min-width: 0; aspect-ratio: auto;
-    height: auto; min-height: 0; padding: 16px;
-    display: grid; grid-template-columns: minmax(0,1.6fr) minmax(220px,1fr);
-    grid-template-rows: auto 1fr; gap: 24px;
-    align-items: center;
-  }
-  .machine {
-    position: relative; left: auto; top: auto;
-    grid-column: 1; grid-row: 1 / 3; justify-self: center;
-    width: min(100%,calc((100svh - 92px) * 585 / 532));
-    min-width: 180px; height: auto; aspect-ratio: 585/532;
-  }
-  .settings-control { position: relative; left: auto; top: auto; grid-column: 2; grid-row: 1; justify-self: start; width: 48px; height: 48px; border-radius: 9px; }
-  .players-control { position: relative; left: auto; top: auto; grid-column: 2; grid-row: 1; justify-self: end; width: min(70%,216px); height: 60px; }
-  .spin-button { position: relative; left: auto; top: auto; grid-column: 2; grid-row: 2; width: 100%; height: auto; aspect-ratio: 536/197; min-height: 80px; max-height: 160px; align-self: center; }
-}
+/* Keep the original vertical composition at every width. On short screens,
+   scroll instead of rearranging the controls or shrinking their touch targets. */
 @media (max-height: 520px) {
   body { align-content: start; }
-  .original-screen { min-width: min(100%,230px); }
 }
 @media (display-mode: standalone) {
   body { min-height: 100dvh; }
