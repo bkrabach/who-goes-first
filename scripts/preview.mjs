@@ -18,7 +18,17 @@ const app = sources['app.js'].replace(/^import .*?;\n/gm, '');
 const artFiles = ['assets/shell-gold.png','assets/reel-redrawn.png','assets/players-label.png','assets/spin-label.png','assets/parchment-redrawn.png'];
 const art = Object.fromEntries(await Promise.all(artFiles.map(async file => [file, await readFile(resolve(root, file))])));
 let css = sources['styles.css'];
-for (const file of artFiles) css = css.replaceAll(`./${file}`, `data:image/png;base64,${art[file].toString('base64')}`);
+const artVariables=[];
+for (const [index,file] of artFiles.entries()) {
+  const url=`url('./${file}')`;
+  if(!css.includes(url))continue;
+  // Reuse one embedded copy, rather than duplicating large textures for every
+  // button state. This keeps the full-resolution preview under Canvas's cap.
+  const variable=`--preview-art-${index}`;
+  css=css.replaceAll(url,`var(${variable})`);
+  artVariables.push(`${variable}:url('data:image/png;base64,${art[file].toString('base64')}')`);
+}
+css=`:root{${artVariables.join(';')}}\n${css}`;
 const code = `${logic}\n${motion}\n${settings}\n${audio}\n${app}`;
 let preview = sources['index.html']
   .replace('<html lang="en">', '<html lang="en" data-preview="true">')
